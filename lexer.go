@@ -13,6 +13,16 @@ type lexer struct {
 	tokens chan token
 }
 
+func lex(name, input string) (*lexer, chan tokens) {
+	l := &lexer{
+		name:   name,
+		input:  input,
+		tokens: make(chan tokens),
+	}
+	go l.run()
+	return l, l.tokens
+}
+
 func (l *lexer) run() {
 	for state := lexDocument; state != nil; {
 		state = state(l)
@@ -36,14 +46,12 @@ func (l *lexer) emitf(t tokenType, format string, args ...interface{}) {
 	l.start = l.pos
 }
 
-func lex(name, input string) (*lexer, chan tokens) {
-	l := &lexer{
-		name:   name,
-		input:  input,
-		tokens: make(chan tokens),
+func (l *lexer) errorf(format string, args ...interface{}) stateFn {
+	l.tokens <- token{
+		tokenError,
+		fmt.Sprintf(format, args),
 	}
-	go l.run()
-	return l, l.tokens
+	return nil
 }
 
 func (l *lexer) next() int {
@@ -82,12 +90,4 @@ func (l *lexer) acceptRun(valid string) {
 	for strings.IndexRune(valid, l.next()) >= 0 {
 	}
 	l.backup()
-}
-
-func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- token{
-		tokenError,
-		fmt.Sprintf(format, args),
-	}
-	return nil
 }
