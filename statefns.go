@@ -41,3 +41,31 @@ func lexDocument(l *lexer) stateFn {
 	// reached EOF
 	// TODO: emit error token if unparsed text in doc
 }
+
+func lexNumericLiteral(l *lexer) stateFn {
+	// TODO
+}
+
+func lexString(l *lexer) stateFn {
+	// TODO
+}
+
+func lexVariable(l *lexer) stateFn {
+	// TODO
+}
+
+func lexLangcode(l *lexer) stateFn {
+	// TODO
+}
+
+func lexQname(l *lexer) stateFn {
+	// TODO
+}
+
+func lexBarename(l *lexer) stateFn {
+	// TODO
+}
+
+func lexExplicitURI(l *lexer) stateFn {
+	// TODO
+}
