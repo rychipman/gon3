@@ -25,6 +25,14 @@ func (l *lexer) emit(t tokenType) {
 	l.start = l.pos
 }
 
+func (l *lexer) emitf(t tokenType, format string, args ...interface{}) {
+	l.tokens <- token{
+		t,
+		fmt.Sprintf(format, args),
+	}
+	l.start = l.pos
+}
+
 func lex(name, input string) (*lexer, chan tokens) {
 	l := &lexer{
 		name:   name,
