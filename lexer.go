@@ -21,7 +21,10 @@ func (l *lexer) run() {
 }
 
 func (l *lexer) emit(t tokenType) {
-	l.tokens <- token{t, l.input[l.start:l.pos]}
+	l.tokens <- token{
+		t,
+		l.input[l.start:l.pos],
+	}
 	l.start = l.pos
 }
 
