@@ -15,7 +15,7 @@ const (
 	tokenLangcode
 	tokenQname
 	tokenBarename
-	tokenExplicituri
+	tokenExplicitURI
 	// TODO: allow document children in any order
 	// TODO: add quickvariable support (is this underscore namespace?)
 	// TODO: add boolean support
