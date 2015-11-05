@@ -7,6 +7,7 @@ import (
 type lexer struct {
 	name   string
 	input  string
+	state  stateFn
 	start  int
 	pos    int
 	width  int
@@ -17,6 +18,7 @@ func lex(name, input string) (*lexer, chan tokens) {
 	l := &lexer{
 		name:   name,
 		input:  input,
+		state:  lexDocument,
 		tokens: make(chan tokens),
 	}
 	go l.run()
@@ -24,8 +26,8 @@ func lex(name, input string) (*lexer, chan tokens) {
 }
 
 func (l *lexer) run() {
-	for state := lexDocument; state != nil; {
-		state = state(l)
+	for l.state != nil {
+		l.state = l.state(l)
 	}
 	close(l.tokens)
 }
