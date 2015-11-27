@@ -75,7 +75,14 @@ func lexLangcode(l *lexer) stateFn {
 }
 
 func lexQname(l *lexer) stateFn {
-	// TODO
+	if l.input[l.pos] != l.qnamePrefix {
+		l.errorf("Expected qname prefix %s, got %s", l.qnamePrefix, l.input[l.pos])
+		return nil
+	}
+	l.pos += len(l.qnamePrefix)
+	l.acceptRun(runQname)
+	l.emit(tokenQname)
+	return lexWhitespace
 }
 
 func lexBarename(l *lexer) stateFn {
@@ -83,5 +90,7 @@ func lexBarename(l *lexer) stateFn {
 }
 
 func lexExplicitURI(l *lexer) stateFn {
-	// TODO
+	l.acceptRun(runURI)
+	l.emit(tokenExplicitURI)
+	return lexWhitespace
 }
