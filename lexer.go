@@ -40,14 +40,6 @@ func (l *lexer) emit(t tokenType) {
 	l.start = l.pos
 }
 
-func (l *lexer) emitf(t tokenType, format string, args ...interface{}) {
-	l.tokens <- token{
-		t,
-		fmt.Sprintf(format, args),
-	}
-	l.start = l.pos
-}
-
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 	l.tokens <- token{
 		tokenError,
