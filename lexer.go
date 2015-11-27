@@ -66,20 +66,31 @@ func (l *lexer) next() rune {
 	return r
 }
 
+// ignore resets l.start to the current value of l.pos.
+// this ignores all the runes processed since the last
+// call to ignore() or emit().
 func (l *lexer) ignore() {
 	l.start = l.pos
 }
 
+// backup decrements l.pos by the width of the last rune
+// processed. backup can only be called once per call to
+// next().
 func (l *lexer) backup() {
 	l.pos -= l.width
 }
 
-func (l *lexer) peek() int {
+// peek returns the value of the rune at l.pos + 1, but
+// does not mutate lexer state.
+func (l *lexer) peek() rune {
 	r := l.next()
 	l.backup()
 	return r
 }
 
+// accept will be equivalent to calling next() if the next
+// rune is in the provided string. If the next rune is not
+// one of those provided, the lexer state is unchanged.
 func (l *lexer) accept(valid string) bool {
 	if strings.IndexRune(valid, l.next()) >= 0 {
 		return true
@@ -88,6 +99,10 @@ func (l *lexer) accept(valid string) bool {
 	return false
 }
 
+// acceptRun will continue accepting tokens until it encounters
+// one not included in the string of valid tokens.
+// acceptRun is preferable to blind calls to next() because it
+// forces explicit declaration of what characters are allowed.
 func (l *lexer) acceptRun(valid string) {
 	for strings.IndexRune(valid, l.next()) >= 0 {
 	}
