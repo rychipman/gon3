@@ -28,7 +28,8 @@ const (
 	equals         = "="
 	implies        = "=>"
 	reverseImplies = "<="
-	// TODO: add consts for ^,!,^^,a
+	eof            = -1
+	// TODO: add consts for ^,!,^^,a,<,>
 )
 
 func lexDocument(l *lexer) stateFn {
