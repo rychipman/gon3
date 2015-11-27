@@ -32,6 +32,17 @@ const (
 	// TODO: add consts for ^,!,^^,a,<,>
 )
 
+const (
+	runAlphabet     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	runWhitespace   = " \n\t\v\f\r"
+	runDigits       = "0123456789"
+	runAlphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	// TODO: create valid runs for each token
+	runURI     = runAlphanumeric + runWhitespace + "<>/:."
+	runQname   = runAlphabet
+	runNumeric = runDigits + "-."
+)
+
 func lexDocument(l *lexer) stateFn {
 	for {
 		// I am a state function. I return another state function
