@@ -54,6 +54,10 @@ func lexDocument(l *lexer) stateFn {
 	// TODO: emit error token if unparsed text in doc
 }
 
+func lexWhitespace(l *lexer) stateFn {
+
+}
+
 func lexNumericLiteral(l *lexer) stateFn {
 	// TODO
 }
