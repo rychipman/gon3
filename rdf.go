@@ -1,5 +1,8 @@
 package gon3
 
+type RDFTerm interface {
+}
+
 // This must be a full (i.e. not relative IRI)
 type IRI string
 
