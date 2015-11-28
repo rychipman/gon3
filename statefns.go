@@ -9,13 +9,6 @@ type stateFn func(*lexer) stateFn
 const (
 	atPrefix       = "@prefix"
 	atBase         = "@base"
-	atKeywords     = "@keywords"
-	atA            = "@a"
-	atHas          = "@has"
-	atIs           = "@is"
-	atOf           = "@of"
-	atForAll       = "@forAll"
-	atForSome      = "@forSome"
 	endStatement   = "."
 	endProperty    = ";"
 	listSeparator  = ","
