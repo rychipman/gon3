@@ -1,5 +1,9 @@
 package gon3
 
+import (
+	"fmt"
+)
+
 type Parser struct {
 	// target data structure
 	Graph *Graph
@@ -78,7 +82,7 @@ func (p *Parser) parseStatement() error {
 	// expect period token
 	tok := p.next()
 	if tok.typ != tokenPeriod {
-		// TODO: return error
+		return fmt.Errorf("Expected tokenEndStatement, got %v", tok)
 	}
 	return nil
 }
@@ -86,17 +90,17 @@ func (p *Parser) parseStatement() error {
 func (p *Parser) parsePrefix() error {
 	tok := p.next()
 	if tok.typ != tokenAtPrefix {
-		// TODO: return an error
+		return fmt.Errorf("Expected tokenAtPrefix, got %v", tok)
 	}
 	// expect PNAME_NS token
 	pNameNS := p.next()
 	if pNameNS.typ != tokenPNameNS {
-		// TODO: return an error
+		return fmt.Errorf("Expected tokenPNameNS, got %v", pNameNS)
 	}
 	// expect IRIREF token
 	iriRef := p.next()
 	if iriRef.typ != tokenIRIRef {
-		// TODO: return an error
+		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
 	}
 	// map a new namespace in parser state
 	key := pNameNS.val[:len(pNameNS.val)-1]
@@ -109,12 +113,12 @@ func (p *Parser) parseBase() error {
 	// expect '@base' token
 	tok := p.next()
 	if tok.typ != tokenAtBase {
-		// TODO: return an error
+		return fmt.Errorf("Expected tokenAtBase, got %v", tok)
 	}
 	// expect IRIREF token
 	iriRef := p.next()
 	if iriRef.typ != tokenIRIRef {
-		// TODO: return an error
+		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
@@ -172,7 +176,7 @@ func (p *Parser) parseSubject() error {
 		p.curSubject = bNode
 		return err
 	default:
-		// TODO: return error
+		return fmt.Errorf("Expected a subject, got %v", tok)
 	}
 }
 
@@ -193,7 +197,7 @@ func (p *Parser) parsePredicateObjectList() error {
 		// expect semicolon token
 		tok := p.next()
 		if tok.typ != tokenSemicolon {
-			// TODO: return error
+			return fmt.Errorf("Expected tokenSemicolon, got %v", tok)
 		}
 		err := p.parsePredicate()
 		if err != nil {
@@ -221,7 +225,7 @@ func (p *Parser) parsePredicate() error {
 		p.curPredicate = iri
 		return err
 	default:
-		// TODO: return err
+		return fmt.Errorf("Expected predicate, got %v", tok)
 	}
 }
 
@@ -232,8 +236,9 @@ func (p *Parser) parseObjectList() error {
 	}
 	for p.peek().typ != tokenPeriod {
 		// expect comma token
-		if p.next().typ != tokenComma {
-			// TODO: return error
+		tok := p.next()
+		if tok.typ != tokenComma {
+			return fmt.Errorf("Expected tokenComma, got %v", tok)
 		}
 		err := p.parseObject()
 		if err != nil {
@@ -250,7 +255,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	// expect tokenStartCollection
 	tok := p.next()
 	if tok.typ != tokenStartCollection {
-		// TODO: return error
+		return fmt.Errorf("Expected tokenStartCollection, got %v", tok)
 	}
 	// set curSubject to a new blank node bNode
 	// set curPredicate to rdf:first
@@ -265,7 +270,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	// expect tokenEndCollection
 	tok := p.next()
 	if tok.typ != tokenEndCollection {
-		// TODO: return error
+		return fmt.Errorf("Expected tokenEndCollection, got %v", tok)
 	}
 	// emit triple p.curSubject rdf:rest rdf:nil
 	p.curSubject = savedSubject
@@ -301,17 +306,17 @@ func (p *Parser) parseObject() error {
 		return err
 	// TODO: include case for literal
 	default:
-		// TODO: return error
+		return fmt.Errorf("Expected object, got %v", tok)
 	}
-	// emit a new triple into the graph object
 }
 
 func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
 	// expect '[' token
-	if p.next().typ != tokenStartBlankNodePropertyList {
-		// TODO: return err
+	tok := p.next()
+	if tok.typ != tokenStartBlankNodePropertyList {
+		return fmt.Errorf("Expected tokenStartBlankNodePropertyList, got %v", tok)
 	}
 	// set curSubject to a new blank node bNode
 	err := p.parsePredicateObjectList()
@@ -319,8 +324,9 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 		return err
 	}
 	// expect ']' token
-	if p.next().typ != tokenEndBlankNodePropertyList {
-		// TODO: return err
+	tok = p.next()
+	if tok.typ != tokenEndBlankNodePropertyList {
+		return fmt.Errorf("Expected tokenEndBlankNodePropertyList, got %v", tok)
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
