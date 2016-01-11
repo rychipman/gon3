@@ -7,6 +7,10 @@ import (
 type stateFn func(*lexer) stateFn
 
 const (
+	eof = -1
+)
+
+const (
 	runAlphabet     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	runWhitespace   = " \n\t\v\f\r"
 	runDigits       = "0123456789"
@@ -21,11 +25,26 @@ func lexDocument(l *lexer) stateFn {
 	l.acceptRun(runWhitespace)
 	switch l.next() {
 	// prefix/base directives
-	case "@prefix":
-		// lex prefix
-	case "@base":
-		// lex base
-	// subject constructions
+	case "@":
+		if !l.acceptRun(runAlphabet) {
+			// TODO: error
+		}
+		if l.accept("-") {
+			if !l.acceptRun(runAlphanumeric) {
+				// TODO: error
+			}
+			l.emit(tokenLangTag)
+			return lexDocument
+		}
+		if l.atPrefix() { // TODO: create this fn
+			l.emit(tokenAtPrefix)
+			return lexDocument
+		}
+		if l.atBase() { // TODO: create this fn
+			l.emit(tokenAtBase)
+			return lexDocument
+		}
+		l.emit(tokenLangTag)
 	case "[":
 		// lex blank node prop list
 	case "(":
@@ -34,9 +53,19 @@ func lexDocument(l *lexer) stateFn {
 		// lex bnode label
 	case "<":
 		// lex iri
+	case "'":
+	case "\"":
 	default:
 		// lex pname
 	}
+}
+
+func (l *lexer) atPrefix() bool {
+
+}
+
+func (l *lexer) atBase() bool {
+
 }
 
 func lexPrefix(l *lexer) stateFn {

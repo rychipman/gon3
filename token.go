@@ -36,10 +36,12 @@ const (
 	tokenStringLiteralSingleQuote
 	tokenStringLiteralLongQuote
 	tokenStringLiteralLongSingleQuote
+	tokenAnon
+
+	// things only used to create terminals
 	tokenUChar
 	tokenEChar
 	tokenWhitespace
-	tokenAnon
 	tokenPNCharsBase
 	tokenPNCharsU
 	tokenPNChars
