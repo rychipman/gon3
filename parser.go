@@ -304,7 +304,10 @@ func (p *Parser) parseObject() error {
 		bNode, err := p.parseBlankNodePropertyList()
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return err
-	// TODO: include case for literal
+	case tokenInteger, tokenDecimal, tokenDouble, tokenTrue, tokenFalse, tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
+		lit, err := p.parseLiteral()
+		p.emitTriple(p.curSubject, p.curPredicate, lit)
+		return err
 	default:
 		return fmt.Errorf("Expected object, got %v", tok)
 	}
