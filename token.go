@@ -10,7 +10,7 @@ const (
 	// tokens expressed as literal strings in http://www.w3.org/TR/turtle/#sec-grammar-grammar
 	tokenAtPrefix = iota
 	tokenAtBase
-	tokenEndStatement
+	tokenEndTriples
 	tokenA
 	tokenPredicateListSeparator
 	tokenObjectListSeparator

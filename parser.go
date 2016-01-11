@@ -79,11 +79,6 @@ func (p *Parser) parseStatement() error {
 			return err
 		}
 	}
-	// expect period token
-	tok := p.next()
-	if tok.typ != tokenEndStatement {
-		return fmt.Errorf("Expected tokenEndStatement, got %v", tok)
-	}
 	return nil
 }
 
@@ -143,12 +138,17 @@ func (p *Parser) parseTriples() error {
 		}
 		p.curSubject = bNode
 		// parse a predicateobjectlist if we have one
-		if p.peek().typ != tokenEndStatement {
+		if p.peek().typ != tokenEndTriples {
 			err = p.parsePredicateObjectList()
 			if err != nil {
 				return err
 			}
 		}
+	}
+	// expect period token
+	tok := p.next()
+	if tok.typ != tokenEndTriples {
+		return fmt.Errorf("Expected tokenEndTriples, got %v", tok)
 	}
 	return nil
 }
@@ -193,7 +193,7 @@ func (p *Parser) parsePredicateObjectList() error {
 	if err != nil {
 		return err
 	}
-	for p.peek().typ != tokenEndStatement {
+	for p.peek().typ != tokenEndTriples {
 		// expect semicolon token
 		tok := p.next()
 		if tok.typ != tokenPredicateListSeparator {
@@ -234,7 +234,7 @@ func (p *Parser) parseObjectList() error {
 	if err != nil {
 		return err
 	}
-	for p.peek().typ != tokenEndStatement {
+	for p.peek().typ != tokenEndTriples {
 		// expect comma token
 		tok := p.next()
 		if tok.typ != tokenObjectListSeparator {
