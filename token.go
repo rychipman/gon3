@@ -7,22 +7,51 @@ import (
 type tokenType int
 
 const (
-	tokenError tokenType = iota
-	tokenEOF
-	tokenNumericLiteral
-	tokenString
-	tokenVariable
-	tokenLangcode
-	tokenQname
-	tokenBarename
-	tokenExplicitURI
-	tokenBlankNodeLabel
+	// tokens expressed as literal strings in http://www.w3.org/TR/turtle/#sec-grammar-grammar
+	tokenAtPrefix = iota
+	tokenAtBase
+	tokenEndStatement
+	tokenA
+	tokenPredicateListSeparator
+	tokenObjectListSeparator
+	tokenStartBlankNodePropertyList
+	tokenEndBlankNodePropertyList
 	tokenStartCollection
 	tokenEndCollection
-	// TODO: allow document children in any order
-	// TODO: add quickvariable support (is this underscore namespace?)
-	// TODO: add boolean support
-	// TODO: add more numeric token types
+	tokenLiteralDatatypeTag // TODO: rename
+	tokenTrue
+	tokenFalse
+
+	// terminal tokens from http://www.w3.org/TR/turtle/#terminals
+	tokenIRIRef
+	tokenPNameNS
+	tokenPNameLN
+	tokenBlankNodeLabel
+	tokenLangTag
+	tokenInteger
+	tokenDecimal
+	tokenDouble
+	tokenExponent
+	tokenStringLiteralQuote
+	tokenStringLiteralSingleQuote
+	tokenStringLiteralLongQuote
+	tokenStringLiteralLongSingleQuote
+	tokenUChar
+	tokenEChar
+	tokenWhitespace
+	tokenAnon
+	tokenPNCharsBase
+	tokenPNCharsU
+	tokenPNChars
+	tokenPNPrefix
+	tokenPNLocal
+	tokenPLX
+	tokenPercent
+	tokenHex
+	tokenPNLocalEsc
+
+	// TODO: use tokenError?
+	// TODO: use tokenEOF?
 )
 
 type token struct {
