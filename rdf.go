@@ -1,6 +1,7 @@
 package gon3
 
 type RDFTerm interface {
+	// iri, blanknode, collection
 }
 
 // This must be a full (i.e. not relative IRI)
@@ -8,7 +9,7 @@ type IRI string
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
 // A blank node can have an internal iri
-type BlankNode IRI
+type BlankNode int
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-literal
 type Literal struct {
