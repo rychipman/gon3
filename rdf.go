@@ -1,15 +1,17 @@
 package gon3
 
 type RDFTerm interface {
-	// iri, blanknode, collection
+	// iri, blanknode, literal
 }
 
 // This must be a full (i.e. not relative IRI)
 type IRI string
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
-// A blank node can have an internal iri
-type BlankNode int
+type BlankNode struct {
+	id    int
+	Label string
+}
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-literal
 type Literal struct {
@@ -20,9 +22,9 @@ type Literal struct {
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple
 type Triple struct {
-	Subject   IRI // TODO: allow to be a blank node
+	Subject   RDFTerm // cannot be a literal
 	Predicate IRI
-	Object    IRI // TODO: allow to be a blank node or a literal
+	Object    RDFTerm
 }
 
 // An RDF graph is a set of RDF triples
