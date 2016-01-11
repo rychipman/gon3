@@ -133,12 +133,20 @@ func (p *Parser) parseTriples() error {
 			return err
 		}
 	} else { // if "blanknodepropertylist predicateobjectlist?"
-		err := p.parseBlankNodePropertyList()
+		bNode, err := p.parseBlankNodePropertyList()
 		if err != nil {
 			return err
 		}
-		// TODO: parse a predicateobjectlist if we have one
+		p.curSubject = bNode
+		// parse a predicateobjectlist if we have one
+		if p.peek().typ != tokenPeriod {
+			err = p.parsePredicateObjectList()
+			if err != nil {
+				return err
+			}
+		}
 	}
+	return nil
 }
 
 func (p *Parser) parseSubject() error {
@@ -287,24 +295,36 @@ func (p *Parser) parseObject() error {
 		bNode, err := p.parseCollection()
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return err
-	// TODO: include cases for blanknodepropertylist, literal
+	case tokenStartBlankNodePropertyList:
+		bNode, err := p.parseBlankNodePropertyList()
+		p.emitTriple(p.curSubject, p.curPredicate, bNode)
+		return err
+	// TODO: include case for literal
 	default:
 		// TODO: return error
 	}
 	// emit a new triple into the graph object
 }
 
-func (p *Parser) parseBlankNodePropertyList() error {
-	// TODO: implement
+func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
+	savedSubject := p.curSubject
+	savedPredicate := p.curPredicate
 	// expect '[' token
-	// name a new blank node and push cursubject
-	err = p.parsePredicateObjectList()
+	if p.next().typ != tokenStartBlankNodePropertyList {
+		// TODO: return err
+	}
+	// set curSubject to a new blank node bNode
+	err := p.parsePredicateObjectList()
 	if err != nil {
 		return err
 	}
 	// expect ']' token
-	// emit a triple
-	// return an error if exists
+	if p.next().typ != tokenEndBlankNodePropertyList {
+		// TODO: return err
+	}
+	p.curSubject = savedSubject
+	p.curPredicate = savedPredicate
+	return bNode, nil
 }
 
 func (p *Parser) parseIRI() error {
