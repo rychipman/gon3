@@ -327,16 +327,29 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	return bNode, nil
 }
 
-func (p *Parser) parseIRI() error {
-	// TODO: implement
-	// expect IRIREF or prefixedname
+func (p *Parser) parseLiteral() (Literal, error) {
+	tok := p.peek()
+	switch tok.typ {
+	case tokenInteger, tokenDecimal, tokenDouble:
+		lit, err := p.parseNumericLiteral()
+		return lit, err
+	case tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
+		lit, err := p.parseRDFLiteral()
+		return lit, err
+	case tokenTrue, tokenFalse:
+		lit, err := p.parseBooleanLiteral()
+		return lit, err
+	}
 }
 
-func (p *Parser) parseBlankNode() error {
+func (p *Parser) parseNumericLiteral() (Literal, error) {
 	// TODO: implement
-	// expech a blank node label or '[  ]'
 }
 
-func (p *Parser) parseLiteral() error {
+func (p *Parser) parseRDFLiteral() (Literal, error) {
+	// TODO: implement
+}
+
+func (p *Parser) parseBooleanLiteral() (Literal, error) {
 	// TODO: implement
 }
