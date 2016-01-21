@@ -116,7 +116,25 @@ func lexBooleanLiteral(l *lexer) stateFn {
 }
 
 func lexPName(l *lexer) stateFn {
-	// TODO: implement
+	// accept PN_PREFIX
+	if acceptRun(runPNCharsBase) {
+		if l.acceptRun(runPNChars + ".") {
+			for l.acceptRun(runPNChars + ".") {
+			}
+			l.backup()
+			if !l.accept(runPNChars) {
+				return l.errorf("Expected PNChars for last char of prefix, got %s", l.input[l.pos-1:l.pos])
+			}
+		}
+	}
+	if !accept(":") {
+		return l.errorf("Expected ':' in pname, got %s", l.input[l.pos-1:l.pos])
+	}
+	if l.atWhitespace() {
+		l.emit(tokenPNameNS)
+		return lexDocument
+	}
+	// TODO: accept PN_LOCAL
 }
 
 func (l *lexer) atPrefix() bool {
@@ -136,5 +154,9 @@ func (l *lexer) atTrue() bool {
 }
 
 func (l *lexer) atA() bool {
+	// TODO: implement
+}
+
+func (l *lexer) atWhitespace() bool {
 	// TODO: implement
 }
