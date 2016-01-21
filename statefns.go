@@ -24,15 +24,16 @@ const (
 
 func lexDocument(l *lexer) stateFn {
 	l.acceptRun(runWhitespace)
+	l.ignore()
 	switch l.next() {
-	// prefix/base directives
 	case "@":
+		// lex prefix/base directives or langtag
 		if !l.acceptRun(runAlphabet) {
-			// TODO: error
+			l.errorf("Expected Alphabet while lexing '@...', got %s", l.input[l.pos-1:l.pos])
 		}
 		if l.accept("-") {
 			if !l.acceptRun(runAlphanumeric) {
-				// TODO: error
+				l.errorf("Expected Alphanumeric while lexing langtag, got %s", l.input[l.pos-1:l.pos])
 			}
 			l.emit(tokenLangTag)
 			return lexDocument
@@ -46,6 +47,7 @@ func lexDocument(l *lexer) stateFn {
 			return lexDocument
 		}
 		l.emit(tokenLangTag)
+		return lexDocument
 	case "[":
 		// lex blank node prop list
 	case "(":
