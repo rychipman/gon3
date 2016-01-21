@@ -12,13 +12,14 @@ const (
 
 const (
 	runAlphabet     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-	runWhitespace   = " \n\t\v\f\r"
 	runDigits       = "0123456789"
 	runAlphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	// TODO: create valid runs for each token
-	runURI     = runAlphanumeric + runWhitespace + "<>/:."
-	runQname   = runAlphabet
-	runNumeric = runDigits + "-."
+	runNumeric      = runDigits + "-."
+	runWhitespace   = " \n\t\v\f\r"    // TODO: check this against TR
+	runPNCharsBase  = runAlphabet + "" // TODO: complete with unicode escapes
+	runPNCharsU     = runPNCharsBase + "_"
+	runPNChars      = runPNCharsU + runDigits + "-" // TODO: complete with unicode escapes
+	runEscapable    = "_~.-!$&'()*+,;=/?#@%"
 )
 
 func lexDocument(l *lexer) stateFn {
