@@ -28,10 +28,6 @@ func lexDocument(l *lexer) stateFn {
 	switch l.peek() {
 	case "@":
 		return lexAtStatement
-	case "[":
-		return lexBlankNodePropertyList
-	case "(":
-		return lexCollection
 	case "_":
 		return lexBlankNodeLabel
 	case "<":
@@ -40,6 +36,18 @@ func lexDocument(l *lexer) stateFn {
 		// TODO: return proper statefn
 	case "\"":
 		// TODO: return proper statefn
+	case "[", "]", "(", ")", ";", ",", ".":
+		return lexPunctuation
+	case "t", "f", "a":
+		if l.atTrue() || l.atFalse() {
+			return lexBooleanLiteral
+		}
+		if l.atA() {
+			l.next()
+			l.emit(tokenA)
+			return lexDocument
+		}
+		fallthrough
 	default:
 		return lexPName
 	}
@@ -72,14 +80,6 @@ func lexAtStatement(l *lexer) stateFn {
 	return lexDocument
 }
 
-func lexBlankNodePropertyList(l *lexer) stateFn {
-	// TODO: implement
-}
-
-func lexCollection(l *lexer) stateFn {
-	// TODO: implement
-}
-
 func lexBlankNodeLabel(l *lexer) stateFn {
 	// lex bnode label
 	if !l.accept("_") {
@@ -107,14 +107,34 @@ func lexIRIRef(l *lexer) stateFn {
 	// TODO: implement
 }
 
+func lexPunctuation(l *lexer) stateFn {
+	// TODO: implement
+}
+
+func lexBooleanLiteral(l *lexer) stateFn {
+	// TODO: implement
+}
+
 func lexPName(l *lexer) stateFn {
 	// TODO: implement
 }
 
 func (l *lexer) atPrefix() bool {
-
+	// TODO: implement
 }
 
 func (l *lexer) atBase() bool {
+	// TODO: implement
+}
 
+func (l *lexer) atFalse() bool {
+	// TODO: implement
+}
+
+func (l *lexer) atTrue() bool {
+	// TODO: implement
+}
+
+func (l *lexer) atA() bool {
+	// TODO: implement
 }
