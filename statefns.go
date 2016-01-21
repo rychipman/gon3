@@ -54,6 +54,22 @@ func lexDocument(l *lexer) stateFn {
 		// lex collection
 	case "_":
 		// lex bnode label
+		if !l.accept(":") {
+			l.errorf("Expected ':' while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
+		}
+		if !l.acceptRun(runPNCharsU + runDigits) {
+			l.errorf("Expected PNCharsU or Digits while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
+		}
+		if l.acceptRun(runPNChars + ".") {
+			for l.acceptRun(runPNChars + ".") {
+			}
+			l.backup()
+			if !l.accept(runPNChars) {
+				l.errorf("Expected PNChars for last char of bnode label, got %s", l.input[l.pos-1:l.pos])
+			}
+		}
+		l.emit(tokenBlankNodeLabel)
+		return lexDocument
 	case "<":
 		// lex iri
 	case "'":
