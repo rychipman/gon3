@@ -25,74 +25,51 @@ const (
 func lexDocument(l *lexer) stateFn {
 	l.acceptRun(runWhitespace)
 	l.ignore()
-	switch l.next() {
+	switch l.peek() {
 	case "@":
-		// lex prefix/base directives or langtag
-		if !l.acceptRun(runAlphabet) {
-			l.errorf("Expected Alphabet while lexing '@...', got %s", l.input[l.pos-1:l.pos])
-		}
-		if l.accept("-") {
-			if !l.acceptRun(runAlphanumeric) {
-				l.errorf("Expected Alphanumeric while lexing langtag, got %s", l.input[l.pos-1:l.pos])
-			}
-			l.emit(tokenLangTag)
-			return lexDocument
-		}
-		if l.atPrefix() { // TODO: create this fn
-			l.emit(tokenAtPrefix)
-			return lexDocument
-		}
-		if l.atBase() { // TODO: create this fn
-			l.emit(tokenAtBase)
-			return lexDocument
-		}
-		l.emit(tokenLangTag)
-		return lexDocument
+		return lexAtStatement
 	case "[":
-		// lex blank node prop list
+		return lexBlankNodePropertyList
 	case "(":
-		// lex collection
+		return lexCollection
 	case "_":
-		// lex bnode label
-		if !l.accept(":") {
-			l.errorf("Expected ':' while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
-		}
-		if !l.acceptRun(runPNCharsU + runDigits) {
-			l.errorf("Expected PNCharsU or Digits while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
-		}
-		if l.acceptRun(runPNChars + ".") {
-			for l.acceptRun(runPNChars + ".") {
-			}
-			l.backup()
-			if !l.accept(runPNChars) {
-				l.errorf("Expected PNChars for last char of bnode label, got %s", l.input[l.pos-1:l.pos])
-			}
-		}
-		l.emit(tokenBlankNodeLabel)
-		return lexDocument
+		return lexBlankNodeLabel
 	case "<":
-		// lex iri
+		return lexIRIRef
 	case "'":
+		// TODO: return proper statefn
 	case "\"":
+		// TODO: return proper statefn
 	default:
-		// lex pname
+		return lexPName
 	}
 }
 
-func (l *lexer) atPrefix() bool {
-
-}
-
-func (l *lexer) atBase() bool {
-
-}
-
-func lexPrefix(l *lexer) stateFn {
-	// TODO: implement
-}
-
-func lexBase(l *lexer) stateFn {
-	// TODO: implement
+func lexAtStatement(l *lexer) stateFn {
+	// lex prefix/base directives or langtag
+	if !l.accept("@") {
+		l.errorf("lexAtStatement called, but '@' not found")
+	}
+	if !l.acceptRun(runAlphabet) {
+		l.errorf("Expected Alphabet while lexing '@...', got %s", l.input[l.pos-1:l.pos])
+	}
+	if l.accept("-") {
+		if !l.acceptRun(runAlphanumeric) {
+			l.errorf("Expected Alphanumeric while lexing langtag, got %s", l.input[l.pos-1:l.pos])
+		}
+		l.emit(tokenLangTag)
+		return lexDocument
+	}
+	if l.atPrefix() {
+		l.emit(tokenAtPrefix)
+		return lexDocument
+	}
+	if l.atBase() {
+		l.emit(tokenAtBase)
+		return lexDocument
+	}
+	l.emit(tokenLangTag)
+	return lexDocument
 }
 
 func lexBlankNodePropertyList(l *lexer) stateFn {
@@ -101,4 +78,43 @@ func lexBlankNodePropertyList(l *lexer) stateFn {
 
 func lexCollection(l *lexer) stateFn {
 	// TODO: implement
+}
+
+func lexBlankNodeLabel(l *lexer) stateFn {
+	// lex bnode label
+	if !l.accept("_") {
+		l.errorf("lexAtStatement called, but '@' not found")
+	}
+	if !l.accept(":") {
+		l.errorf("Expected ':' while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
+	}
+	if !l.acceptRun(runPNCharsU + runDigits) {
+		l.errorf("Expected PNCharsU or Digits while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
+	}
+	if l.acceptRun(runPNChars + ".") {
+		for l.acceptRun(runPNChars + ".") {
+		}
+		l.backup()
+		if !l.accept(runPNChars) {
+			l.errorf("Expected PNChars for last char of bnode label, got %s", l.input[l.pos-1:l.pos])
+		}
+	}
+	l.emit(tokenBlankNodeLabel)
+	return lexDocument
+}
+
+func lexIRIRef(l *lexer) stateFn {
+	// TODO: implement
+}
+
+func lexPName(l *lexer) stateFn {
+	// TODO: implement
+}
+
+func (l *lexer) atPrefix() bool {
+
+}
+
+func (l *lexer) atBase() bool {
+
 }
