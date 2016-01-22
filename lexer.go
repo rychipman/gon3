@@ -4,7 +4,7 @@ type lexer interface {
 	nextToken() token
 }
 
-func charMatchLexer(name, input string) *charMatchLexer {
+func newCharMatchLexer(name, input string) *charMatchLexer {
 	l := &charMatchLexer{
 		name:   name,
 		input:  input,
@@ -14,7 +14,7 @@ func charMatchLexer(name, input string) *charMatchLexer {
 	return l
 }
 
-func naiveRegexLexer(name, input string) *naiveRegexLexer {
+func newNaiveRegexLexer(name, input string) *naiveRegexLexer {
 	l := &naiveRegexLexer{
 		name:  name,
 		input: input,
