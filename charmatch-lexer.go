@@ -91,13 +91,6 @@ func (l *charMatchLexer) accept(valid string) bool {
 // one not included in the string of valid tokens.
 // acceptRun is preferable to blind calls to next() because it
 // forces explicit declaration of what characters are allowed.
-func (l *charMatchLexer) acceptRun(valid string) bool {
-	success := false
-	for strings.IndexRune(valid, l.next()) >= 0 {
-		if !success {
-			success = true
-		}
-	}
-	l.backup()
-	return success
+func (l *charMatchLexer) acceptRun(valid matcher) bool {
+	return valid.match(l)
 }
