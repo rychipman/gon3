@@ -47,6 +47,7 @@ func lexDocument(l *charMatchLexer) stateFn {
 	default:
 		return lexPName
 	}
+	panic("unreachable")
 }
 
 func lexAtStatement(l *charMatchLexer) stateFn {
@@ -101,19 +102,22 @@ func lexBlankNodeLabel(l *charMatchLexer) stateFn {
 
 func lexIRIRef(l *charMatchLexer) stateFn {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func lexPunctuation(l *charMatchLexer) stateFn {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func lexBooleanLiteral(l *charMatchLexer) stateFn {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func lexPName(l *charMatchLexer) stateFn {
 	// accept PN_PREFIX
-	if acceptRun(runPNCharsBase) {
+	if l.acceptRun(runPNCharsBase) {
 		if l.acceptRun(runPNChars + ".") {
 			for l.acceptRun(runPNChars + ".") {
 			}
@@ -123,7 +127,7 @@ func lexPName(l *charMatchLexer) stateFn {
 			}
 		}
 	}
-	if !accept(":") {
+	if !l.accept(":") {
 		return l.errorf("Expected ':' in pname, got %s", l.input[l.pos-1:l.pos])
 	}
 	if l.atWhitespace() {
@@ -131,28 +135,35 @@ func lexPName(l *charMatchLexer) stateFn {
 		return lexDocument
 	}
 	// TODO: accept PN_LOCAL
+	panic("unfinished")
 }
 
 func (l *charMatchLexer) atPrefix() bool {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (l *charMatchLexer) atBase() bool {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (l *charMatchLexer) atFalse() bool {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (l *charMatchLexer) atTrue() bool {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (l *charMatchLexer) atA() bool {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (l *charMatchLexer) atWhitespace() bool {
 	// TODO: implement
+	panic("unimplemented")
 }

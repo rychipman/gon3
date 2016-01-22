@@ -2,6 +2,8 @@ package gon3
 
 import (
 	"fmt"
+	"strings"
+	"unicode/utf8"
 )
 
 type charMatchLexer struct {
@@ -46,6 +48,7 @@ func (l *charMatchLexer) next() rune {
 		l.width = 0
 		return eof
 	}
+	var r rune
 	r, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
 	l.pos += l.width
 	return r
