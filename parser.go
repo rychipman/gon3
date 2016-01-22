@@ -6,7 +6,7 @@ import (
 
 type Parser struct {
 	// target data structure
-	Graph *Graph
+	Graph Graph
 	// parser state
 	lex           *lexer // TODO: initialize lexer
 	baseURI       IRI
@@ -14,22 +14,31 @@ type Parser struct {
 	bNodeLabels   map[string]BlankNode
 	lastBlankNode BlankNode // TODO: initialize this to -1
 	curSubject    RDFTerm   // TODO: create RDFTerm type (or perhaps interface)
-	curPredicate  RDFTerm
+	curPredicate  IRI
 }
 
-func (p *Parser) emitTriple(subj, pred, obj RDFTerm) { // TODO: work out typing things
-	trip := Triple{
+func (p *Parser) peek() token {
+	panic("unimplemented")
+}
+
+func (p *Parser) next() token {
+	panic("unimplemented")
+}
+
+func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work out typing things
+	trip := &Triple{
 		Subject:   subj,
 		Predicate: pred,
 		Object:    obj,
 	}
-	append(p.Graph, trip)
+	p.Graph = append(p.Graph, trip)
 }
 
 func (p *Parser) absIRI(iri string) (IRI, error) {
 	// if first char not '<', process as prefixed name
 	// else if relative, resolve according to http://www.w3.org/TR/turtle/#sec-iri-references
 	// finally, remove unicode escape sequences
+	panic("unimplemented")
 }
 
 func (p *Parser) blankNode(label string) (BlankNode, error) {
@@ -37,18 +46,18 @@ func (p *Parser) blankNode(label string) (BlankNode, error) {
 	if node, present := p.bNodeLabels[label]; present {
 		return node, nil
 	}
-	newNode := p.lastBlankNode + 1 // TODO: def not correct
+	newNode := BlankNode{p.lastBlankNode.id + 1, "somelabelname"} // TODO: def not correct
 	p.bNodeLabels[label] = newNode
 	return newNode, nil
 }
 
-func (p *Parser) Parse(text string) (*Graph, error) {
+func (p *Parser) Parse(text string) (Graph, error) {
 	// initialize fields
 	p.Graph = Graph{}
-	p.namespaces = map[prefix]IRI{}
+	p.namespaces = map[string]IRI{} //map[prefix]IRI{} // TODO: make prefix type
 	p.bNodeLabels = map[string]BlankNode{}
 
-	err := nil
+	var err error
 	for { // while the next token is not an EOF
 		err = p.parseStatement()
 		if err != nil {
@@ -117,6 +126,7 @@ func (p *Parser) parseBase() error {
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
+	var err error
 	p.baseURI, err = p.absIRI(iriRef.val)
 	return err
 }
@@ -127,7 +137,7 @@ func (p *Parser) parseTriples() error {
 		if err != nil {
 			return err
 		}
-		err = parsePredicateObjectList()
+		err = p.parsePredicateObjectList()
 		if err != nil {
 			return err
 		}
@@ -255,26 +265,27 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	// expect tokenStartCollection
 	tok := p.next()
 	if tok.typ != tokenStartCollection {
-		return fmt.Errorf("Expected tokenStartCollection, got %v", tok)
+		return BlankNode{}, fmt.Errorf("Expected tokenStartCollection, got %v", tok)
 	}
 	// set curSubject to a new blank node bNode
 	// set curPredicate to rdf:first
-	next = p.peek()
+	next := p.peek()
 	for next.typ != tokenEndCollection {
 		err := p.parseObject()
 		if err != nil {
-			return err
+			return BlankNode{}, err
 		}
 	}
 	// TODO make sure this holds up for empty collections
 	// expect tokenEndCollection
 	tok = p.next()
 	if tok.typ != tokenEndCollection {
-		return fmt.Errorf("Expected tokenEndCollection, got %v", tok)
+		return BlankNode{}, fmt.Errorf("Expected tokenEndCollection, got %v", tok)
 	}
 	// emit triple p.curSubject rdf:rest rdf:nil
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
+	bNode := BlankNode{} // TODO: this blank node should actually be something
 	return bNode, nil
 }
 
@@ -319,20 +330,21 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	// expect '[' token
 	tok := p.next()
 	if tok.typ != tokenStartBlankNodePropertyList {
-		return fmt.Errorf("Expected tokenStartBlankNodePropertyList, got %v", tok)
+		return BlankNode{}, fmt.Errorf("Expected tokenStartBlankNodePropertyList, got %v", tok)
 	}
 	// set curSubject to a new blank node bNode
 	err := p.parsePredicateObjectList()
 	if err != nil {
-		return err
+		return BlankNode{}, err
 	}
 	// expect ']' token
 	tok = p.next()
 	if tok.typ != tokenEndBlankNodePropertyList {
-		return fmt.Errorf("Expected tokenEndBlankNodePropertyList, got %v", tok)
+		return BlankNode{}, fmt.Errorf("Expected tokenEndBlankNodePropertyList, got %v", tok)
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
+	bNode := BlankNode{} // TODO: this bnode should be something
 	return bNode, nil
 }
 
@@ -349,16 +361,21 @@ func (p *Parser) parseLiteral() (Literal, error) {
 		lit, err := p.parseBooleanLiteral()
 		return lit, err
 	}
+	// TODO should this actually be unreachable?
+	panic("unreachable")
 }
 
 func (p *Parser) parseNumericLiteral() (Literal, error) {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (p *Parser) parseRDFLiteral() (Literal, error) {
 	// TODO: implement
+	panic("unimplemented")
 }
 
 func (p *Parser) parseBooleanLiteral() (Literal, error) {
 	// TODO: implement
+	panic("unimplemented")
 }
