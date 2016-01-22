@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type stateFn func(*lexer) stateFn
+type stateFn func(*charMatchLexer) stateFn
 
 const (
 	eof = -1
@@ -22,7 +22,7 @@ const (
 	runEscapable    = "_~.-!$&'()*+,;=/?#@%"
 )
 
-func lexDocument(l *lexer) stateFn {
+func lexDocument(l *charMatchLexer) stateFn {
 	l.acceptRun(runWhitespace)
 	l.ignore()
 	switch l.peek() {
@@ -53,7 +53,7 @@ func lexDocument(l *lexer) stateFn {
 	}
 }
 
-func lexAtStatement(l *lexer) stateFn {
+func lexAtStatement(l *charMatchLexer) stateFn {
 	// lex prefix/base directives or langtag
 	if !l.accept("@") {
 		return l.errorf("lexAtStatement called, but '@' not found")
@@ -80,7 +80,7 @@ func lexAtStatement(l *lexer) stateFn {
 	return lexDocument
 }
 
-func lexBlankNodeLabel(l *lexer) stateFn {
+func lexBlankNodeLabel(l *charMatchLexer) stateFn {
 	// lex bnode label
 	if !l.accept("_") {
 		return l.errorf("lexAtStatement called, but '@' not found")
@@ -103,19 +103,19 @@ func lexBlankNodeLabel(l *lexer) stateFn {
 	return lexDocument
 }
 
-func lexIRIRef(l *lexer) stateFn {
+func lexIRIRef(l *charMatchLexer) stateFn {
 	// TODO: implement
 }
 
-func lexPunctuation(l *lexer) stateFn {
+func lexPunctuation(l *charMatchLexer) stateFn {
 	// TODO: implement
 }
 
-func lexBooleanLiteral(l *lexer) stateFn {
+func lexBooleanLiteral(l *charMatchLexer) stateFn {
 	// TODO: implement
 }
 
-func lexPName(l *lexer) stateFn {
+func lexPName(l *charMatchLexer) stateFn {
 	// accept PN_PREFIX
 	if acceptRun(runPNCharsBase) {
 		if l.acceptRun(runPNChars + ".") {
@@ -137,26 +137,26 @@ func lexPName(l *lexer) stateFn {
 	// TODO: accept PN_LOCAL
 }
 
-func (l *lexer) atPrefix() bool {
+func (l *charMatchLexer) atPrefix() bool {
 	// TODO: implement
 }
 
-func (l *lexer) atBase() bool {
+func (l *charMatchLexer) atBase() bool {
 	// TODO: implement
 }
 
-func (l *lexer) atFalse() bool {
+func (l *charMatchLexer) atFalse() bool {
 	// TODO: implement
 }
 
-func (l *lexer) atTrue() bool {
+func (l *charMatchLexer) atTrue() bool {
 	// TODO: implement
 }
 
-func (l *lexer) atA() bool {
+func (l *charMatchLexer) atA() bool {
 	// TODO: implement
 }
 
-func (l *lexer) atWhitespace() bool {
+func (l *charMatchLexer) atWhitespace() bool {
 	// TODO: implement
 }
