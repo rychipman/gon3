@@ -10,7 +10,7 @@ type Parser struct {
 	// parser state
 	lex           *lexer // TODO: initialize lexer
 	baseURI       IRI
-	namespaces    map[prefix]IRI // TODO: create prefix type
+	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
 	bNodeLabels   map[string]BlankNode
 	lastBlankNode BlankNode // TODO: initialize this to -1
 	curSubject    RDFTerm   // TODO: create RDFTerm type (or perhaps interface)
@@ -268,7 +268,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	}
 	// TODO make sure this holds up for empty collections
 	// expect tokenEndCollection
-	tok := p.next()
+	tok = p.next()
 	if tok.typ != tokenEndCollection {
 		return fmt.Errorf("Expected tokenEndCollection, got %v", tok)
 	}

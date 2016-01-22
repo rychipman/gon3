@@ -17,7 +17,7 @@ type BlankNode struct {
 type Literal struct {
 	LexicalForm string
 	DatatypeIRI IRI
-	LanguageTag
+	LanguageTag string
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple
