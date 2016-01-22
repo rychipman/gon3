@@ -1,9 +1,5 @@
 package gon3
 
-import (
-	"fmt"
-)
-
 type stateFn func(*charMatchLexer) stateFn
 
 const (
