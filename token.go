@@ -52,8 +52,9 @@ const (
 	tokenHex
 	tokenPNLocalEsc
 
-	// TODO: use tokenError?
-	// TODO: use tokenEOF?
+	// special-use tokens
+	tokenError
+	tokenEOF
 )
 
 type token struct {
