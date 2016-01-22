@@ -8,14 +8,27 @@ type matcher interface {
 	match(*charMatchLexer) bool
 }
 
-type stringMatcher string
+type stringMatcher struct {
+	multi bool
+	valid string
+}
 
-func (s stringMatcher) match(l *charMatchLexer) bool {
+func (s *stringMatcher) matchesMultiple() bool {
+	return s.multi
+}
+
+func (s *stringMatcher) match(l *charMatchLexer) bool {
 	strn := s.(string)
 	success := false
 	for strings.IndexRune(strn, l.next()) >= 0 {
 		if !success {
 			success = true
+		}
+		if !s.multi {
+			if !success {
+				l.backup()
+			}
+			return success
 		}
 	}
 	l.backup()
@@ -23,8 +36,13 @@ func (s stringMatcher) match(l *charMatchLexer) bool {
 }
 
 type unicodeRangeMatcher struct {
+	multi bool
 	first rune
 	last  rune
+}
+
+func (u *unicodeRangeMatcher) matchesMultiple() bool {
+	return u.multi
 }
 
 func (u *unicodeRangeMatcher) match(l *charMatchLexer) bool {
@@ -37,6 +55,12 @@ func (u *unicodeRangeMatcher) match(l *charMatchLexer) bool {
 		if !success {
 			success = true
 		}
+		if !u.multi {
+			if !success {
+				l.backup()
+			}
+			return success
+		}
 	}
 	l.backup()
 	return success
@@ -44,6 +68,15 @@ func (u *unicodeRangeMatcher) match(l *charMatchLexer) bool {
 
 type unionMatcher struct {
 	matchers []matcher
+}
+
+func (u *unionMatcher) matchesMultiple() bool {
+	for _, m := range matchers {
+		if !m.matchesMultiple() {
+			return false
+		}
+	}
+	return true
 }
 
 func (u *unionMatcher) match(l *charMatchLexer) bool {
@@ -58,12 +91,19 @@ func (u *unionMatcher) match(l *charMatchLexer) bool {
 		} else if !success {
 			success = true
 		}
+		if !u.matchesMultiple() {
+			break
+		}
 	}
 	return success
 }
 
 type sequentialMatcher struct {
 	matchers []matcher
+}
+
+func (s *sequentialMatcher) matchesMultiple() bool {
+	return false
 }
 
 func (s *sequentialMatcher) match(l *charMatchLexer) bool {
