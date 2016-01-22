@@ -14,22 +14,25 @@ type lexer struct {
 	tokens chan token
 }
 
-func lex(name, input string) (*lexer, chan tokens) {
+func lex(name, input string) *lexer {
 	l := &lexer{
 		name:   name,
 		input:  input,
 		state:  lexDocument,
-		tokens: make(chan tokens),
+		tokens: make(chan tokens, 2),
 	}
-	go l.run()
-	return l, l.tokens
+	return l
 }
 
-func (l *lexer) run() {
-	for l.state != nil {
-		l.state = l.state(l)
+func (l *lexer) nextToken() token {
+	for {
+		select {
+		case tok := <-l.tokens:
+			return tok
+		default:
+			l.state = l.state(l)
+		}
 	}
-	close(l.tokens)
 }
 
 func (l *lexer) emit(t tokenType) {
