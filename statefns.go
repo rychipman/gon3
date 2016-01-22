@@ -66,16 +66,33 @@ func lexAtStatement(l *charMatchLexer) stateFn {
 }
 
 func lexBlankNodeLabel(l *charMatchLexer) stateFn {
-	// lex bnode label
-	if !l.accept("_") {
-		return l.errorf("lexAtStatement called, but '@' not found")
+
+	newMatcher()
+		.acceptRunes("_")
+		.matchOne()
+
+	newMatcher()
+		.acceptRunes(":")
+		.matchOne()
+
+	newMatcher()
+		.union(mPNCharsU)
+		.acceptRunes("0123456789")
+		.matchOne()
+
+	bNodeLabelMatcher := &sequentialMatcher{
+		[]matcher{
+			&stringMatcher{false, "_"},
+			&stringMatcher{false, ":"},
+			&unionMatcher{
+				[]matcher{
+					//PN_CHARS_U
+					&stringMatcher{false, runDigits},
+				},
+			},
+		},
 	}
-	if !l.accept(":") {
-		return l.errorf("Expected ':' while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
-	}
-	if !l.acceptRun(runPNCharsU + runDigits) {
-		return l.errorf("Expected PNCharsU or Digits while lexing bnode label, got %s", l.input[l.pos-1:l.pos])
-	}
+
 	if l.acceptRun(runPNChars + ".") {
 		for l.acceptRun(runPNChars + ".") {
 		}
