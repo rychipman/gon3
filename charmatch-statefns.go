@@ -22,19 +22,19 @@ func lexDocument(l *charMatchLexer) stateFn {
 	l.acceptRun(runWhitespace)
 	l.ignore()
 	switch l.peek() {
-	case "@":
+	case '@':
 		return lexAtStatement
-	case "_":
+	case '_':
 		return lexBlankNodeLabel
-	case "<":
+	case '<':
 		return lexIRIRef
-	case "'":
+	case '\'':
 		// TODO: return proper statefn
-	case "\"":
+	case '"':
 		// TODO: return proper statefn
-	case "[", "]", "(", ")", ";", ",", ".":
+	case '[', ']', '(', ')', ';', ',', '.':
 		return lexPunctuation
-	case "t", "f", "a":
+	case 't', 'f', 'a':
 		if l.atTrue() || l.atFalse() {
 			return lexBooleanLiteral
 		}
