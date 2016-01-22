@@ -13,3 +13,11 @@ func charMatchLexer(name, input string) *charMatchLexer {
 	}
 	return l
 }
+
+func naiveRegexLexer(name, input string) *naiveRegexLexer {
+	l := &naiveRegexLexer{
+		name:  name,
+		input: input,
+	}
+	return l
+}
