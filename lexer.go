@@ -9,7 +9,7 @@ func newCharMatchLexer(name, input string) *charMatchLexer {
 		name:   name,
 		input:  input,
 		state:  lexDocument,
-		tokens: make(chan tokens, 2),
+		tokens: make(chan token, 2),
 	}
 	return l
 }
