@@ -74,8 +74,34 @@ func lexBlankNodeLabel(l *charMatchLexer) stateFn {
 }
 
 func lexIRIRef(l *charMatchLexer) stateFn {
-	// TODO: implement
-	panic("unimplemented")
+	easylex.NewMatcher().AcceptRunes("<").MatchOne(l)
+	// TODO: assert
+	iriChars := easylex.NewMatcher().RejectRunes("<>\"{}|^`\\\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u0020")
+	for {
+		m1 := iriChars.MatchRun(l)
+		if l.Peek() == '\\' {
+			l.Next()
+			if l.Peek() == 'u' {
+				for i := 0; i < 4; i += 1 {
+					matchHex.MatchOne(l)
+					// TODO: assert
+				}
+			} else if l.Peek() == 'U' {
+				for i := 0; i < 8; i += 1 {
+					matchHex.MatchOne(l)
+					// TODO: assert
+				}
+			} else {
+				// TODO: error
+			}
+		} else if !m1 {
+			break
+		}
+	}
+	easylex.NewMatcher().AcceptRunes(">").MatchOne(l)
+	// TODO: assert
+	l.Emit(tokenIRIRef)
+	return lexDocument
 }
 
 func lexPunctuation(l *charMatchLexer) stateFn {
