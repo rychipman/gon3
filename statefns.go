@@ -11,6 +11,7 @@ const (
 
 func lexDocument(l *easylex.Lexer) easylex.StateFn {
 	matchWhitespace.MatchRun(l)
+	l.Ignore()
 	switch l.Peek() {
 	case '@':
 		return lexAtStatement
