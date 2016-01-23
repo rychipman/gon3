@@ -174,11 +174,11 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 		return lexDocument
 	}
 	// accept PN_LOCAL
-	if l.Peek() == `\` {
+	if l.Peek() == '\\' {
 		l.Next()
 		matchEscapable.MatchOne(l)
 		// TODO: assert
-	} else if l.Peek() == "%" {
+	} else if l.Peek() == '%' {
 		l.Next()
 		matchHex.MatchOne(l)
 		// TODO: assert
@@ -191,12 +191,12 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 	for {
 		period := matchPeriod.MatchRun(l)
 		other := false
-		if l.Peek() == `\` {
+		if l.Peek() == '\\' {
 			l.Next()
 			matchEscapable.MatchOne(l)
 			// TODO: assert
 			other = true
-		} else if l.Peek() == "%" {
+		} else if l.Peek() == '%' {
 			l.Next()
 			matchHex.MatchOne(l)
 			// TODO: assert
