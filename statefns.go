@@ -46,9 +46,31 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("@").MatchOne(l)
 	// TODO: assert
-
-	// TODO: implement
-
+	if easylex.NewMatcher().AcceptString("prefix").MatchOne(l) {
+		if isWhitespace(l.Peek()) {
+			l.Emit(tokenAtPrefix)
+			return lexDocument
+		}
+	}
+	if easylex.NewMatcher().AcceptString("base").MatchOne(l) {
+		if isWhitespace(l.Peek()) {
+			l.Emit(tokenAtBase)
+			return lexDocument
+		}
+	}
+	matchAlphabet.MatchRun(l)
+	// TODO: assert
+	for {
+		hyphen := easylex.NewMatcher().AcceptRunes("-").MatchOne(l)
+		alph := matchAlphaNumeric.MatchRun(l)
+		if !hyphen && !alph {
+			break
+		}
+		if hyphen != alph {
+			// TODO: error
+		}
+	}
+	l.Emit(tokenLangTag)
 	return lexDocument
 }
 
