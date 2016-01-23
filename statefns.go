@@ -146,18 +146,151 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 }
 
 func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
-	// TODO: implement
 	if matchLongQuote.MatchOne(l) {
-
+		for {
+			q := matchQuote.MatchOne(l)
+			q = matchQuote.MatchOne(l) || q
+			ch := true
+			if easylex.NewMatcher().RejectRunes(`"\`) {
+				// do nothing
+			} else if l.Peek() == '\\' {
+				l.Next()
+				switch l.Peek() {
+				case 'u':
+					l.Next()
+					for i := 0; i < 4; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 'U':
+					l.Next()
+					for i := 0; i < 8; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
+					l.Next()
+				default:
+					ch = false
+				}
+			}
+			if !q && !ch {
+				break
+			}
+			if q && !ch {
+				// TODO: error
+			}
+		}
+		matchLongQuote.MatchOne(l)
+		// TODO: assert
+		l.Emit(tokenStringLiteralLongQuote)
+		return lexDocument
 	}
 	if matchLongSingleQuote.MatchOne(l) {
-
+		for {
+			q := matchSingleQuote.MatchOne(l)
+			q = matchSingleQuote.MatchOne(l) || q
+			ch := true
+			if easylex.NewMatcher().RejectRunes(`'\`) {
+				// do nothing
+			} else if l.Peek() == '\\' {
+				l.Next()
+				switch l.Peek() {
+				case 'u':
+					l.Next()
+					for i := 0; i < 4; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 'U':
+					l.Next()
+					for i := 0; i < 8; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
+					l.Next()
+				default:
+					ch = false
+				}
+			}
+			if !q && !ch {
+				break
+			}
+			if q && !ch {
+				// TODO: error
+			}
+		}
+		matchLongSingleQuote.MatchOne(l)
+		// TODO: assert
+		l.Emit(tokenStringLiteralLongSingleQuote)
+		return lexDocument
 	}
 	if matchQuote.MatchOne(l) {
-
+		for {
+			if easylex.NewMatcher().RejectRunes("\u0022\u005c\u000a\u000d") {
+				// do nothing
+			} else if l.Peek() == '\\' {
+				l.Next()
+				switch l.Peek() {
+				case 'u':
+					l.Next()
+					for i := 0; i < 4; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 'U':
+					l.Next()
+					for i := 0; i < 8; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
+					l.Next()
+				default:
+					break
+				}
+			} else {
+				break
+			}
+		}
+		matchQuote.MatchOne(l)
+		// TODO: assert
+		l.Emit(tokenStringLiteralQuote)
+		return lexDocument
 	}
 	if matchSingleQuote.MatchOne(l) {
-
+		for {
+			if easylex.NewMatcher().RejectRunes("\u0027\u005c\u000a\u000d") {
+				// do nothing
+			} else if l.Peek() == '\\' {
+				l.Next()
+				switch l.Peek() {
+				case 'u':
+					l.Next()
+					for i := 0; i < 4; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 'U':
+					l.Next()
+					for i := 0; i < 8; i += 1 {
+						matchHex.MatchOne(l)
+						// TODO: assert
+					}
+				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
+					l.Next()
+				default:
+					break
+				}
+			} else {
+				break
+			}
+		}
+		matchSingleQuote.MatchOne(l)
+		// TODO: assert
+		l.Emit(tokenStringLiteralSingleQuote)
+		return lexDocument
 	}
 }
 
