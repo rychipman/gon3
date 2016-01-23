@@ -1,15 +1,16 @@
 package gon3
 
-type stateFn func(*charMatchLexer) stateFn
+import (
+	"easylex"
+)
 
 const (
 	eof = -1
 )
 
 func lexDocument(l *charMatchLexer) stateFn {
-	l.acceptRun(runWhitespace)
-	l.ignore()
-	switch l.peek() {
+	matchWhitespace.MatchRun(l)
+	switch l.Peek() {
 	case '@':
 		return lexAtStatement
 	case '_':
@@ -23,12 +24,16 @@ func lexDocument(l *charMatchLexer) stateFn {
 	case '[', ']', '(', ')', ';', ',', '.':
 		return lexPunctuation
 	case 't', 'f', 'a':
-		if l.atTrue() || l.atFalse() {
-			return lexBooleanLiteral
+		if matchTrue.MatchOne(l) {
+			l.Emit(tokenTrue)
+			return lexDocument
 		}
-		if l.atA() {
-			l.next()
-			l.emit(tokenA)
+		if matchFalse.MatchOne(l) {
+			l.Emit(tokenFalse)
+			return lexDocument
+		}
+		if matchA.MatchOne(l) {
+			l.Emit(tokenA)
 			return lexDocument
 		}
 		fallthrough
@@ -39,66 +44,29 @@ func lexDocument(l *charMatchLexer) stateFn {
 }
 
 func lexAtStatement(l *charMatchLexer) stateFn {
-	// lex prefix/base directives or langtag
-	if !l.accept("@") {
-		return l.errorf("lexAtStatement called, but '@' not found")
-	}
-	if !l.acceptRun(runAlphabet) {
-		return l.errorf("Expected Alphabet while lexing '@...', got %s", l.input[l.pos-1:l.pos])
-	}
-	if l.accept("-") {
-		if !l.acceptRun(runAlphanumeric) {
-			return l.errorf("Expected Alphanumeric while lexing langtag, got %s", l.input[l.pos-1:l.pos])
-		}
-		l.emit(tokenLangTag)
-		return lexDocument
-	}
-	if l.atPrefix() {
-		l.emit(tokenAtPrefix)
-		return lexDocument
-	}
-	if l.atBase() {
-		l.emit(tokenAtBase)
-		return lexDocument
-	}
-	l.emit(tokenLangTag)
+	easylex.NewMatcher().AcceptRunes("@").MatchOne(l)
+	// TODO: assert
+
+	// TODO: implement
+
 	return lexDocument
 }
 
 func lexBlankNodeLabel(l *charMatchLexer) stateFn {
-
-	newMatcher()
-		.acceptRunes("_")
-		.matchOne()
-
-	newMatcher()
-		.acceptRunes(":")
-		.matchOne()
-
-	newMatcher()
-		.union(mPNCharsU)
-		.acceptRunes("0123456789")
-		.matchOne()
-
-	bNodeLabelMatcher := &sequentialMatcher{
-		[]matcher{
-			&stringMatcher{false, "_"},
-			&stringMatcher{false, ":"},
-			&unionMatcher{
-				[]matcher{
-					//PN_CHARS_U
-					&stringMatcher{false, runDigits},
-				},
-			},
-		},
-	}
-
-	if l.acceptRun(runPNChars + ".") {
-		for l.acceptRun(runPNChars + ".") {
-		}
-		l.backup()
-		if !l.accept(runPNChars) {
-			return l.errorf("Expected PNChars for last char of bnode label, got %s", l.input[l.pos-1:l.pos])
+	easylex.NewMatcher().AcceptRunes("_").MatchOne(l)
+	// TODO: assert
+	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
+	// TODO: assert
+	easylex.NewMatcher().Union(matchPNCharsU).Union(matchDigits).MatchOne(l) // TODO: create these matchers
+	// TODO: assert
+	for {
+		period := matchPeriod.MatchRun(l)
+		pnchars := matchPNChars.MatchRun(l)
+		if !pnchars {
+			if period {
+				// TODO: error
+			}
+			break
 		}
 	}
 	l.emit(tokenBlankNodeLabel)
@@ -111,64 +79,88 @@ func lexIRIRef(l *charMatchLexer) stateFn {
 }
 
 func lexPunctuation(l *charMatchLexer) stateFn {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func lexBooleanLiteral(l *charMatchLexer) stateFn {
-	// TODO: implement
-	panic("unimplemented")
+	// [ ] ( ) ; , .
+	if matchOpenBracket.MatchOne(l) {
+		l.Emit(tokenStartBlankNodePropertyList)
+	} else if matchCloseBracket.MatchOne(l) {
+		l.Emit(tokenEndBlankNodePropertyList)
+	} else if matchOpenParens.MatchOne(l) {
+		l.Emit(tokenStartCollection)
+	} else if matchCloseParens.MatchOne(l) {
+		l.Emit(tokenEndCollection)
+	} else if matchSemicolon.MatchOne(l) {
+		l.Emit(tokenPredicateListSeparator)
+	} else if matchComma.MatchOne(l) {
+		l.Emit(tokenObjectListSeparator)
+	} else if matchPeriod.MatchOne(l) {
+		l.Emit(tokenEndTriples)
+	} else {
+		// TODO: error
+	}
+	return lexDocument
 }
 
 func lexPName(l *charMatchLexer) stateFn {
 	// accept PN_PREFIX
-	if l.acceptRun(runPNCharsBase) {
-		if l.acceptRun(runPNChars + ".") {
-			for l.acceptRun(runPNChars + ".") {
+	matchPNCharsBase.MatchOne(l)
+	for {
+		period := matchPeriod.MatchRun(l)
+		pnchars := matchPNChars.MatchRun(l)
+		if !pnchars {
+			if period {
+				// TODO: error
 			}
-			l.backup()
-			if !l.accept(runPNChars) {
-				return l.errorf("Expected PNChars for last char of prefix, got %s", l.input[l.pos-1:l.pos])
-			}
+			break
 		}
 	}
-	if !l.accept(":") {
-		return l.errorf("Expected ':' in pname, got %s", l.input[l.pos-1:l.pos])
-	}
-	if l.atWhitespace() {
+	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
+	// TODO: assert
+	if matchWhitespace.MatchRun(l) {
 		l.emit(tokenPNameNS)
 		return lexDocument
 	}
-	// TODO: accept PN_LOCAL
-	panic("unfinished")
-}
-
-func (l *charMatchLexer) atPrefix() bool {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func (l *charMatchLexer) atBase() bool {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func (l *charMatchLexer) atFalse() bool {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func (l *charMatchLexer) atTrue() bool {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func (l *charMatchLexer) atA() bool {
-	// TODO: implement
-	panic("unimplemented")
-}
-
-func (l *charMatchLexer) atWhitespace() bool {
-	// TODO: implement
-	panic("unimplemented")
+	// accept PN_LOCAL
+	if l.Peek() == `\` {
+		l.Next()
+		matchEscapable.MatchOne(l)
+		// TODO: assert
+	} else if l.Peek() == "%" {
+		l.Next()
+		matchHex.MatchOne(l)
+		// TODO: assert
+		matchHex.MatchOne(l)
+		// TODO: assert
+	} else {
+		easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).MatchOne(l)
+		// TODO: assert
+	}
+	for {
+		period := matchPeriod.MatchRun(l)
+		other := false
+		if l.Peek() == `\` {
+			l.Next()
+			matchEscapable.MatchOne(l)
+			// TODO: assert
+			other = true
+		} else if l.Peek() == "%" {
+			l.Next()
+			matchHex.MatchOne(l)
+			// TODO: assert
+			matchHex.MatchOne(l)
+			// TODO: assert
+			other = true
+		} else {
+			easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).MatchOne(l)
+			// TODO: assert
+			other = true
+		}
+		if !other {
+			if period {
+				// TODO: error
+			}
+			break
+		}
+	}
+	l.emit(tokenPNameLN)
+	return lexDocument
 }
