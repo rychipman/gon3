@@ -97,7 +97,7 @@ func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
 			break
 		}
 	}
-	l.emit(tokenBlankNodeLabel)
+	l.Emit(tokenBlankNodeLabel)
 	return lexDocument
 }
 
@@ -170,7 +170,7 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
 	// TODO: assert
 	if matchWhitespace.MatchRun(l) {
-		l.emit(tokenPNameNS)
+		l.Emit(tokenPNameNS)
 		return lexDocument
 	}
 	// accept PN_LOCAL
@@ -215,6 +215,6 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 			break
 		}
 	}
-	l.emit(tokenPNameLN)
+	l.Emit(tokenPNameLN)
 	return lexDocument
 }
