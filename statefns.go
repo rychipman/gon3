@@ -25,16 +25,22 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		return lexPunctuation
 	case 't', 'f', 'a':
 		if matchTrue.MatchOne(l) {
-			l.Emit(tokenTrue)
-			return lexDocument
+			if isWhitespace(l.Peek()) {
+				l.Emit(tokenTrue)
+				return lexDocument
+			}
 		}
 		if matchFalse.MatchOne(l) {
-			l.Emit(tokenFalse)
-			return lexDocument
+			if isWhitespace(l.Peek()) {
+				l.Emit(tokenFalse)
+				return lexDocument
+			}
 		}
 		if matchA.MatchOne(l) {
-			l.Emit(tokenA)
-			return lexDocument
+			if isWhitespace(l.Peek()) {
+				l.Emit(tokenA)
+				return lexDocument
+			}
 		}
 		fallthrough
 	default:
