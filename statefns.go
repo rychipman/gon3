@@ -2,6 +2,7 @@ package gon3
 
 import (
 	"github.com/rychipman/easylex"
+	"strings"
 )
 
 const (
@@ -47,6 +48,13 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		return lexPName
 	}
 	panic("unreachable")
+}
+
+func isWhitespace(r rune) bool {
+	if strings.IndexRune("\n\r\t\v\f ", r) >= 0 {
+		return true
+	}
+	return false
 }
 
 func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
