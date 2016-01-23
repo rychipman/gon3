@@ -1,7 +1,6 @@
 package gon3
 
 import (
-	"fmt"
 	"github.com/rychipman/easylex"
 )
 
