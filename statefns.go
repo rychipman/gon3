@@ -181,7 +181,7 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 	}
 	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
 	// TODO: assert
-	if matchWhitespace.MatchRun(l) {
+	if l.Peek() == '<' || isWhitespace(l.Peek()) {
 		l.Emit(tokenPNameNS)
 		return lexDocument
 	}
