@@ -8,7 +8,7 @@ const (
 	eof = -1
 )
 
-func lexDocument(l *charMatchLexer) stateFn {
+func lexDocument(l *easylex.Lexer) easylex.StateFn {
 	matchWhitespace.MatchRun(l)
 	switch l.Peek() {
 	case '@':
@@ -43,7 +43,7 @@ func lexDocument(l *charMatchLexer) stateFn {
 	panic("unreachable")
 }
 
-func lexAtStatement(l *charMatchLexer) stateFn {
+func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("@").MatchOne(l)
 	// TODO: assert
 
@@ -52,7 +52,7 @@ func lexAtStatement(l *charMatchLexer) stateFn {
 	return lexDocument
 }
 
-func lexBlankNodeLabel(l *charMatchLexer) stateFn {
+func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("_").MatchOne(l)
 	// TODO: assert
 	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
@@ -73,7 +73,7 @@ func lexBlankNodeLabel(l *charMatchLexer) stateFn {
 	return lexDocument
 }
 
-func lexIRIRef(l *charMatchLexer) stateFn {
+func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("<").MatchOne(l)
 	// TODO: assert
 	iriChars := easylex.NewMatcher().RejectRunes("<>\"{}|^`\\\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u0020")
@@ -104,7 +104,7 @@ func lexIRIRef(l *charMatchLexer) stateFn {
 	return lexDocument
 }
 
-func lexPunctuation(l *charMatchLexer) stateFn {
+func lexPunctuation(l *easylex.Lexer) easylex.StateFn {
 	// [ ] ( ) ; , .
 	if matchOpenBracket.MatchOne(l) {
 		l.Emit(tokenStartBlankNodePropertyList)
@@ -126,7 +126,7 @@ func lexPunctuation(l *charMatchLexer) stateFn {
 	return lexDocument
 }
 
-func lexPName(l *charMatchLexer) stateFn {
+func lexPName(l *easylex.Lexer) easylex.StateFn {
 	// accept PN_PREFIX
 	matchPNCharsBase.MatchOne(l)
 	for {
