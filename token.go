@@ -6,7 +6,7 @@ import (
 
 const (
 	// tokens expressed as literal strings in http://www.w3.org/TR/turtle/#sec-grammar-grammar
-	tokenAtPrefix easylex.Token = iota
+	tokenAtPrefix easylex.TokenType = iota
 	tokenAtBase
 	tokenEndTriples
 	tokenA
