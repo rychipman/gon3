@@ -151,7 +151,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 			q := matchQuote.MatchOne(l)
 			q = matchQuote.MatchOne(l) || q
 			ch := true
-			if easylex.NewMatcher().RejectRunes(`"\`) {
+			if easylex.NewMatcher().RejectRunes(`"\`).MatchOne(l) {
 				// do nothing
 			} else if l.Peek() == '\\' {
 				l.Next()
@@ -191,7 +191,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 			q := matchSingleQuote.MatchOne(l)
 			q = matchSingleQuote.MatchOne(l) || q
 			ch := true
-			if easylex.NewMatcher().RejectRunes(`'\`) {
+			if easylex.NewMatcher().RejectRunes(`'\`).MatchOne(l) {
 				// do nothing
 			} else if l.Peek() == '\\' {
 				l.Next()
@@ -228,7 +228,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 	}
 	if matchQuote.MatchOne(l) {
 		for {
-			if easylex.NewMatcher().RejectRunes("\u0022\u005c\u000a\u000d") {
+			if easylex.NewMatcher().RejectRunes("\u0022\u005c\u000a\u000d").MatchOne(l) {
 				// do nothing
 			} else if l.Peek() == '\\' {
 				l.Next()
@@ -261,7 +261,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 	}
 	if matchSingleQuote.MatchOne(l) {
 		for {
-			if easylex.NewMatcher().RejectRunes("\u0027\u005c\u000a\u000d") {
+			if easylex.NewMatcher().RejectRunes("\u0027\u005c\u000a\u000d").MatchOne(l) {
 				// do nothing
 			} else if l.Peek() == '\\' {
 				l.Next()
@@ -292,19 +292,20 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 		l.Emit(tokenStringLiteralSingleQuote)
 		return lexDocument
 	}
+	panic("unreachable")
 }
 
 func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-	if matchNumeric.MatchRun(l) {
+	if matchDigits.MatchRun(l) {
 		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchNumeric.MatchRun(l)
+			matchDigits.MatchRun(l)
 			// TODO: assert
 			l.Emit(tokenDouble)
 			return lexDocument
 		} else if matchPeriod.MatchOne(l) {
-			if matchNumeric.MatchRun(l) {
+			if matchDigits.MatchRun(l) {
 				if isWhitespace(l.Peek()) {
 					l.Emit(tokenDecimal)
 					return lexDocument
@@ -313,7 +314,7 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 			easylex.NewMatcher().AcceptRunes("eE").MatchOne(l)
 			// TODO: assert
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchNumeric.MatchRun(l)
+			matchDigits.MatchRun(l)
 			// TODO: assert
 			l.Emit(tokenDouble)
 			return lexDocument
@@ -324,11 +325,11 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 	} else {
 		matchPeriod.MatchOne(l)
 		// TODO: assert
-		matchNumeric.MatchRun(l)
+		matchDigits.MatchRun(l)
 		// TODO: assert
 		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchNumeric.MatchRun(l)
+			matchDigits.MatchRun(l)
 			// TODO: assert
 			l.Emit(tokenDouble)
 			return lexDocument
