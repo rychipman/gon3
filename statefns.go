@@ -13,6 +13,9 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 	matchWhitespace.MatchRun(l)
 	l.Ignore()
 	switch l.Peek() {
+	case easylex.EOF:
+		l.Emit(easylex.TokenEOF)
+		return nil
 	case '@':
 		return lexAtStatement
 	case '_':
