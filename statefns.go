@@ -22,10 +22,11 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		return lexBlankNodeLabel
 	case '<':
 		return lexIRIRef
-	case '\'':
-		// TODO: return proper statefn
-	case '"':
-		// TODO: return proper statefn
+	case '"', '\'':
+		return lexRDFLiteral
+	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		// TODO: handle decimal vs period
+		return lexNumericLiteral
 	case '[', ']', '(', ')', ';', ',', '.':
 		return lexPunctuation
 	case 't', 'f', 'a':
@@ -142,6 +143,66 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 	// TODO: assert
 	l.Emit(tokenIRIRef)
 	return lexDocument
+}
+
+func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
+	// TODO: implement
+	if matchLongQuote.MatchOne(l) {
+
+	}
+	if matchLongSingleQuote.MatchOne(l) {
+
+	}
+	if matchQuote.MatchOne(l) {
+
+	}
+	if matchSingleQuote.MatchOne(l) {
+
+	}
+}
+
+func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
+	easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
+	if matchNumeric.MatchRun(l) {
+		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
+			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
+			matchNumeric.MatchRun(l)
+			// TODO: assert
+			l.Emit(tokenDouble)
+			return lexDocument
+		} else if matchPeriod.MatchOne(l) {
+			if matchNumeric.MatchRun(l) {
+				if isWhitespace(l.Peek()) {
+					l.Emit(tokenDecimal)
+					return lexDocument
+				}
+			}
+			easylex.NewMatcher().AcceptRunes("eE").MatchOne(l)
+			// TODO: assert
+			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
+			matchNumeric.MatchRun(l)
+			// TODO: assert
+			l.Emit(tokenDouble)
+			return lexDocument
+		} else {
+			l.Emit(tokenInteger)
+			return lexDocument
+		}
+	} else {
+		matchPeriod.MatchOne(l)
+		// TODO: assert
+		matchNumeric.MatchRun(l)
+		// TODO: assert
+		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
+			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
+			matchNumeric.MatchRun(l)
+			// TODO: assert
+			l.Emit(tokenDouble)
+			return lexDocument
+		}
+		l.Emit(tokenDecimal)
+		return lexDocument
+	}
 }
 
 func lexPunctuation(l *easylex.Lexer) easylex.StateFn {
