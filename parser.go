@@ -108,12 +108,12 @@ func (p *Parser) parseStatement() error {
 			return err
 		}
 	case tokenSPARQLBase:
-		err := p.ParseSPARQLBase()
+		err := p.parseSPARQLBase()
 		if err != nil {
 			return err
 		}
 	case tokenSPARQLPrefix:
-		err := p.ParseSPARQLPrefix()
+		err := p.parseSPARQLPrefix()
 		if err != nil {
 			return err
 		}
@@ -168,6 +168,45 @@ func (p *Parser) parseBase() error {
 	period := p.next()
 	if period.Typ != tokenEndTriples {
 		return fmt.Errorf("Expected tokenEndTriples, got %v", period)
+	}
+	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
+	// for now, assume it is an abs iri
+	var err error
+	p.baseURI, err = p.absIRI(iriRef.Val)
+	return err
+}
+
+func (p *Parser) parseSPARQLPrefix() error {
+	tok := p.next()
+	if tok.Typ != tokenSPARQLPrefix {
+		return fmt.Errorf("Expected tokenSPARQLPrefix, got %v", tok)
+	}
+	// expect PNAME_NS token
+	pNameNS := p.next()
+	if pNameNS.Typ != tokenPNameNS {
+		return fmt.Errorf("Expected tokenPNameNS, got %v", pNameNS)
+	}
+	// expect IRIREF token
+	iriRef := p.next()
+	if iriRef.Typ != tokenIRIRef {
+		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	}
+	// map a new namespace in parser state
+	key := pNameNS.Val[:len(pNameNS.Val)-1]
+	val, err := p.absIRI(iriRef.Val)
+	p.namespaces[key] = val
+	return err
+}
+
+func (p *Parser) parseSPARQLBase() error {
+	tok := p.next()
+	if tok.Typ != tokenSPARQLBase {
+		return fmt.Errorf("Expected tokenSPARQLBase, got %v", tok)
+	}
+	// expect IRIREF token
+	iriRef := p.next()
+	if iriRef.Typ != tokenIRIRef {
+		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
