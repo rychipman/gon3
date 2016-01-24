@@ -247,8 +247,14 @@ func (p *Parser) parseSubject() error {
 	// expect a valid subject term, which is one of
 	// iri|blanknode|collection
 	switch tok.Typ {
-	case tokenIRIRef: // TODO: include PrefixedName here
+	case tokenIRIRef:
 		p.next()
+		iri, err := newIRI(tok.Val)
+		p.curSubject = iri
+		return err
+	case tokenPNameLN:
+		p.next()
+		// TODO: resolve pname to an iri
 		iri, err := newIRI(tok.Val)
 		p.curSubject = iri
 		return err
@@ -307,12 +313,17 @@ func (p *Parser) parsePredicate() error {
 		pred, err := newIRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
 		p.curPredicate = pred
 		return err
-	case tokenIRIRef: // TODO: include PrefixedName here
+	case tokenIRIRef:
+		iri, err := newIRI(tok.Val)
+		p.curPredicate = iri
+		return err
+	case tokenPNameLN:
+		// TODO: resolve pname into an iri
 		iri, err := newIRI(tok.Val)
 		p.curPredicate = iri
 		return err
 	default:
-		return fmt.Errorf("Expected predicate, got %v", tok)
+		return fmt.Errorf("Expected predicate, got %v (type %s)", tok, tok.Typ)
 	}
 }
 
@@ -370,8 +381,14 @@ func (p *Parser) parseObject() error {
 	// where object = iri|blanknode|collection|blanknodepropertylist|literal
 	tok := p.peek()
 	switch tok.Typ {
-	case tokenIRIRef: // TODO: include PrefixedName
+	case tokenIRIRef:
 		p.next()
+		iri, err := newIRI(tok.Val)
+		p.emitTriple(p.curSubject, p.curPredicate, iri)
+		return err
+	case tokenPNameLN:
+		p.next()
+		// TODO: resolve pname into an iri
 		iri, err := newIRI(tok.Val)
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
