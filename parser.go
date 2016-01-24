@@ -47,24 +47,26 @@ func (p *Parser) Parse() (Graph, error) {
 }
 
 func (p *Parser) peek() easylex.Token {
-	select {
-	case t := <-p.nextTok:
-		p.nextTok <- t
-		return t
-	default:
-		p.nextTok <- p.lex.NextToken()
+	for {
+		select {
+		case t := <-p.nextTok:
+			p.nextTok <- t
+			return t
+		default:
+			p.nextTok <- p.lex.NextToken()
+		}
 	}
-	panic("unreachable")
 }
 
 func (p *Parser) next() easylex.Token {
-	select {
-	case t := <-p.nextTok:
-		return t
-	default:
-		p.nextTok <- p.lex.NextToken()
+	for {
+		select {
+		case t := <-p.nextTok:
+			return t
+		default:
+			p.nextTok <- p.lex.NextToken()
+		}
 	}
-	panic("unreachable")
 }
 
 func (p *Parser) expect(typ easylex.TokenType) (easylex.Token, error) {
