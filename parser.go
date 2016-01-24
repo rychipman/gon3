@@ -86,14 +86,6 @@ func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) {
 	p.Graph = append(p.Graph, trip)
 }
 
-func (p *Parser) absIRI(iri string) (IRI, error) {
-	// TODO: implement
-	// if first char not '<', process as prefixed name
-	// else if relative, resolve according to http://www.w3.org/TR/turtle/#sec-iri-references
-	// finally, remove unicode escape sequences
-	panic("unimplemented")
-}
-
 func (p *Parser) blankNode(label string) (BlankNode, error) {
 	// TODO: when would we return an error?
 	if node, present := p.bNodeLabels[label]; present {
@@ -159,7 +151,7 @@ func (p *Parser) parsePrefix() error {
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
-	val, err := p.absIRI(iriRef.Val)
+	val, err := newIRI(iriRef.Val)
 	p.namespaces[key] = val
 	return err
 }
@@ -179,7 +171,7 @@ func (p *Parser) parseBase() error {
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	p.baseURI, err = p.absIRI(iriRef.Val)
+	p.baseURI, err = newIRI(iriRef.Val)
 	return err
 }
 
@@ -198,7 +190,7 @@ func (p *Parser) parseSPARQLPrefix() error {
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
-	val, err := p.absIRI(iriRef.Val)
+	val, err := newIRI(iriRef.Val)
 	p.namespaces[key] = val
 	return err
 }
@@ -214,7 +206,7 @@ func (p *Parser) parseSPARQLBase() error {
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	p.baseURI, err = p.absIRI(iriRef.Val)
+	p.baseURI, err = newIRI(iriRef.Val)
 	return err
 }
 
@@ -256,7 +248,7 @@ func (p *Parser) parseSubject() error {
 	switch tok.Typ {
 	case tokenIRIRef: // TODO: include PrefixedName here
 		p.next()
-		iri, err := p.absIRI(tok.Val)
+		iri, err := newIRI(tok.Val)
 		p.curSubject = iri
 		return err
 	case tokenBlankNodeLabel:
@@ -311,11 +303,11 @@ func (p *Parser) parsePredicate() error {
 	switch tok.Typ {
 	case tokenA:
 		// TODO: remove magic string
-		pred, err := p.absIRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+		pred, err := newIRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
 		p.curPredicate = pred
 		return err
 	case tokenIRIRef: // TODO: include PrefixedName here
-		iri, err := p.absIRI(tok.Val)
+		iri, err := newIRI(tok.Val)
 		p.curPredicate = iri
 		return err
 	default:
@@ -379,7 +371,7 @@ func (p *Parser) parseObject() error {
 	switch tok.Typ {
 	case tokenIRIRef: // TODO: include PrefixedName
 		p.next()
-		iri, err := p.absIRI(tok.Val)
+		iri, err := newIRI(tok.Val)
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
 	case tokenBlankNodeLabel:

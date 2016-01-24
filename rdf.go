@@ -7,6 +7,14 @@ type RDFTerm interface {
 // This must be a full (i.e. not relative IRI)
 type IRI string
 
+func newIRI(iri string) (IRI, error) {
+	// TODO: implement
+	// if first char not '<', process as prefixed name
+	// else if relative, resolve according to http://www.w3.org/TR/turtle/#sec-iri-references
+	// finally, remove unicode escape sequences
+	panic("unimplemented")
+}
+
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
 type BlankNode struct {
 	id    int
