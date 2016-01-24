@@ -291,7 +291,7 @@ func (p *Parser) parsePredicateObjectList() error {
 	if err != nil {
 		return err
 	}
-	for p.peek().Typ != tokenEndTriples {
+	for p.peek().Typ == tokenPredicateListSeparator {
 		_, err = p.expect(tokenPredicateListSeparator)
 		if err != nil {
 			return err
@@ -336,7 +336,7 @@ func (p *Parser) parseObjectList() error {
 	if err != nil {
 		return err
 	}
-	for p.peek().Typ != tokenEndTriples {
+	for p.peek().Typ == tokenObjectListSeparator {
 		// expect comma token
 		_, err = p.expect(tokenObjectListSeparator)
 		if err != nil {
