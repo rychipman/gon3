@@ -367,6 +367,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 		if err != nil {
 			return BlankNode{}, err
 		}
+		next = p.peek()
 	}
 
 	// TODO: make sure this holds up for empty collections.
