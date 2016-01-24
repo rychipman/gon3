@@ -1,18 +1,22 @@
 package gon3
 
+import (
+	"github.com/rychipman/easylex"
+)
+
 type lexer interface {
-	NextToken easylex.Token
+	NextToken() easylex.Token
 }
 
 type mockLexer struct {
 	tokens []easylex.Token
-	pos int
+	pos    int
 }
 
 func newMockLexer(args ...easylex.Token) *mockLexer {
 	return &mockLexer{
-		tokens: args
-		pos:0,
+		tokens: args,
+		pos:    0,
 	}
 }
 
