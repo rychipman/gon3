@@ -9,14 +9,35 @@ type Parser struct {
 	// target data structure
 	Graph Graph
 	// parser state
-	lex           *easylex.Lexer     // TODO: initialize lexer
-	nextTok       chan easylex.Token // TODO: initialize this with a buffer of 1
+	lex           *easylex.Lexer
+	nextTok       chan easylex.Token
 	baseURI       IRI
 	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
 	bNodeLabels   map[string]BlankNode
 	lastBlankNode BlankNode // TODO: initialize this to -1
 	curSubject    RDFTerm   // TODO: create RDFTerm type (or perhaps interface)
 	curPredicate  IRI
+}
+
+func Parse(input string) (Graph, error) {
+	// initialize parser
+	p := &Parser{
+		Graph:         []*Triple{},
+		lex:           easylex.Lex(input, lexDocument),
+		nextTok:       make(chan easylex.Token, 1),
+		baseURI:       "", // TODO
+		namespaces:    map[string]IRI{},
+		bNodeLabels:   map[string]BlankNode{},
+		lastBlankNode: BlankNode{-1},
+	}
+	var err error
+	for { // while the next token is not an EOF
+		err = p.parseStatement()
+		if err != nil {
+			break
+		}
+	}
+	return p.Graph, err
 }
 
 func (p *Parser) peek() easylex.Token {
@@ -62,22 +83,6 @@ func (p *Parser) blankNode(label string) (BlankNode, error) {
 	newNode := BlankNode{p.lastBlankNode.id + 1, "somelabelname"} // TODO: def not correct
 	p.bNodeLabels[label] = newNode
 	return newNode, nil
-}
-
-func (p *Parser) Parse(text string) (Graph, error) {
-	// initialize fields
-	p.Graph = Graph{}
-	p.namespaces = map[string]IRI{} //map[prefix]IRI{} // TODO: make prefix type
-	p.bNodeLabels = map[string]BlankNode{}
-
-	var err error
-	for { // while the next token is not an EOF
-		err = p.parseStatement()
-		if err != nil {
-			break
-		}
-	}
-	return p.Graph, err
 }
 
 func (p *Parser) parseStatement() error {
