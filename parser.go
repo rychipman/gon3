@@ -67,6 +67,14 @@ func (p *Parser) next() easylex.Token {
 	panic("unreachable")
 }
 
+func (p *Parser) expect(typ easylex.TokenType) (easylex.Token, error) {
+	tok := p.next()
+	if tok.Typ != typ {
+		return tok, fmt.Errorf("Expected %s, got %s", typ, tok.Typ)
+	}
+	return tok, nil
+}
+
 func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work out typing things
 	trip := &Triple{
 		Subject:   subj,
@@ -127,24 +135,21 @@ func (p *Parser) parseStatement() error {
 }
 
 func (p *Parser) parsePrefix() error {
-	tok := p.next()
-	if tok.Typ != tokenAtPrefix {
-		return fmt.Errorf("Expected tokenAtPrefix, got %v", tok)
+	_, err := p.expect(tokenAtPrefix)
+	if err != nil {
+		return err
 	}
-	// expect PNAME_NS token
-	pNameNS := p.next()
-	if pNameNS.Typ != tokenPNameNS {
-		return fmt.Errorf("Expected tokenPNameNS, got %v", pNameNS)
+	pNameNS, err := p.expect(tokenPNameNS)
+	if err != nil {
+		return err
 	}
-	// expect IRIREF token
-	iriRef := p.next()
-	if iriRef.Typ != tokenIRIRef {
-		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	iriRef, err := p.expect(tokenIRIRef)
+	if err != nil {
+		return err
 	}
-	// expect "." token
-	period := p.next()
-	if period.Typ != tokenEndTriples {
-		return fmt.Errorf("Expected tokenEndTriples, got %v", period)
+	_, err = p.expect(tokenEndTriples)
+	if err != nil {
+		return err
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
@@ -154,42 +159,36 @@ func (p *Parser) parsePrefix() error {
 }
 
 func (p *Parser) parseBase() error {
-	// expect '@base' token
-	tok := p.next()
-	if tok.Typ != tokenAtBase {
-		return fmt.Errorf("Expected tokenAtBase, got %v", tok)
+	_, err := p.expect(tokenAtBase)
+	if err != nil {
+		return err
 	}
-	// expect IRIREF token
-	iriRef := p.next()
-	if iriRef.Typ != tokenIRIRef {
-		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	iriRef, err := p.expect(tokenIRIRef)
+	if err != nil {
+		return err
 	}
-	// expect "." token
-	period := p.next()
-	if period.Typ != tokenEndTriples {
-		return fmt.Errorf("Expected tokenEndTriples, got %v", period)
+	_, err = p.expect(tokenEndTriples)
+	if err != nil {
+		return err
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	var err error
 	p.baseURI, err = p.absIRI(iriRef.Val)
 	return err
 }
 
 func (p *Parser) parseSPARQLPrefix() error {
-	tok := p.next()
-	if tok.Typ != tokenSPARQLPrefix {
-		return fmt.Errorf("Expected tokenSPARQLPrefix, got %v", tok)
+	_, err := p.expect(tokenSPARQLPrefix)
+	if err != nil {
+		return err
 	}
-	// expect PNAME_NS token
-	pNameNS := p.next()
-	if pNameNS.Typ != tokenPNameNS {
-		return fmt.Errorf("Expected tokenPNameNS, got %v", pNameNS)
+	pNameNS, err := p.expect(tokenPNameNS)
+	if err != nil {
+		return err
 	}
-	// expect IRIREF token
-	iriRef := p.next()
-	if iriRef.Typ != tokenIRIRef {
-		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	iriRef, err := p.expect(tokenIRIRef)
+	if err != nil {
+		return err
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
@@ -199,18 +198,16 @@ func (p *Parser) parseSPARQLPrefix() error {
 }
 
 func (p *Parser) parseSPARQLBase() error {
-	tok := p.next()
-	if tok.Typ != tokenSPARQLBase {
-		return fmt.Errorf("Expected tokenSPARQLBase, got %v", tok)
+	_, err := p.expect(tokenSPARQLBase)
+	if err != nil {
+		return err
 	}
-	// expect IRIREF token
-	iriRef := p.next()
-	if iriRef.Typ != tokenIRIRef {
-		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	iriRef, err := p.expect(tokenIRIRef)
+	if err != nil {
+		return err
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	var err error
 	p.baseURI, err = p.absIRI(iriRef.Val)
 	return err
 }
@@ -239,10 +236,9 @@ func (p *Parser) parseTriples() error {
 			}
 		}
 	}
-	// expect period token
-	tok := p.next()
-	if tok.Typ != tokenEndTriples {
-		return fmt.Errorf("Expected tokenEndTriples, got %v", tok)
+	_, err := p.expect(tokenEndTriples)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -287,12 +283,11 @@ func (p *Parser) parsePredicateObjectList() error {
 		return err
 	}
 	for p.peek().Typ != tokenEndTriples {
-		// expect semicolon token
-		tok := p.next()
-		if tok.Typ != tokenPredicateListSeparator {
-			return fmt.Errorf("Expected tokenPredicateListSeparator, got %v", tok)
+		_, err = p.expect(tokenPredicateListSeparator)
+		if err != nil {
+			return err
 		}
-		err := p.parsePredicate()
+		err = p.parsePredicate()
 		if err != nil {
 			return err
 		}
@@ -329,11 +324,11 @@ func (p *Parser) parseObjectList() error {
 	}
 	for p.peek().Typ != tokenEndTriples {
 		// expect comma token
-		tok := p.next()
-		if tok.Typ != tokenObjectListSeparator {
-			return fmt.Errorf("Expected tokenObjectListSeparator, got %v", tok)
+		_, err = p.expect(tokenObjectListSeparator)
+		if err != nil {
+			return err
 		}
-		err := p.parseObject()
+		err = p.parseObject()
 		if err != nil {
 			return err
 		}
@@ -344,10 +339,9 @@ func (p *Parser) parseObjectList() error {
 func (p *Parser) parseCollection() (BlankNode, error) {
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
-	// expect tokenStartCollection
-	tok := p.next()
-	if tok.Typ != tokenStartCollection {
-		return BlankNode{}, fmt.Errorf("Expected tokenStartCollection, got %v", tok)
+	_, err := p.expect(tokenStartCollection)
+	if err != nil {
+		return BlankNode{}, err
 	}
 	// TODO: set curSubject to a new blank node bNode
 	// TODO: set curPredicate to rdf:first
@@ -361,11 +355,9 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 
 	// TODO: make sure this holds up for empty collections.
 	// Also note that empty collections are probably what tokenAnon is.
-
-	// expect tokenEndCollection
-	tok = p.next()
-	if tok.Typ != tokenEndCollection {
-		return BlankNode{}, fmt.Errorf("Expected tokenEndCollection, got %v", tok)
+	_, err = p.expect(tokenEndCollection)
+	if err != nil {
+		return BlankNode{}, err
 	}
 	// TODO: emit triple p.curSubject rdf:rest rdf:nil
 	p.curSubject = savedSubject
@@ -412,19 +404,19 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
 	// expect '[' token
-	tok := p.next()
-	if tok.Typ != tokenStartBlankNodePropertyList {
-		return BlankNode{}, fmt.Errorf("Expected tokenStartBlankNodePropertyList, got %v", tok)
+	_, err := p.expect(tokenStartBlankNodePropertyList)
+	if err != nil {
+		return BlankNode{}, err
 	}
 	// TODO: set curSubject to a new blank node bNode
-	err := p.parsePredicateObjectList()
+	err = p.parsePredicateObjectList()
 	if err != nil {
 		return BlankNode{}, err
 	}
 	// expect ']' token
-	tok = p.next()
-	if tok.Typ != tokenEndBlankNodePropertyList {
-		return BlankNode{}, fmt.Errorf("Expected tokenEndBlankNodePropertyList, got %v", tok)
+	_, err = p.expect(tokenEndBlankNodePropertyList)
+	if err != nil {
+		return BlankNode{}, err
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
