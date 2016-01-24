@@ -441,16 +441,83 @@ func (p *Parser) parseLiteral() (Literal, error) {
 }
 
 func (p *Parser) parseNumericLiteral() (Literal, error) {
-	// TODO: implement
-	panic("unimplemented")
+	tok := p.next()
+	switch tok.Typ {
+	case tokenInteger:
+		lit := Literal{
+			tok.Val,
+			"xsd:integer", // TODO: should probably make this a const
+			"",
+		}
+		return lit, nil
+	case tokenDecimal:
+		lit := Literal{
+			tok.Val,
+			"xsd:decimal", // TODO: should probably make this a const
+			"",
+		}
+		return lit, nil
+	case tokenDouble:
+		lit := Literal{
+			tok.Val,
+			"xsd:double", // TODO: should probably make this a const
+			"",
+		}
+		return lit, nil
+	default:
+		return Literal{}, fmt.Errorf("Expected a numeric literal token, got %s", tok)
+	}
 }
 
 func (p *Parser) parseRDFLiteral() (Literal, error) {
-	// TODO: implement
-	panic("unimplemented")
+	tok := p.next()
+	lit := Literal{}
+	switch tok.Typ {
+	case tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
+		// TODO: remove quotes from string and resolve escapes
+		lit.LexicalForm = tok.Val
+	default:
+		return Literal{}, fmt.Errorf("Expected a string literal token, got %s", tok)
+	}
+	if p.peek().Typ == tokenLangTag {
+		langtag := p.next()
+		// TODO: parse the lang string out of val
+		lit.LanguageTag = langtag.Val
+	}
+	if p.peek().Typ == tokenLiteralDatatypeTag {
+		p.next()
+		dtype, err := p.expect(tokenIRIRef)
+		if err != nil {
+			return Literal{}, err
+		}
+		// TODO: make sure IRI is getting created properly
+		iri, err := newIRI(dtype.Val)
+		if err != nil {
+			return Literal{}, err
+		}
+		lit.DatatypeIRI = iri
+	}
+	return lit, nil
 }
 
 func (p *Parser) parseBooleanLiteral() (Literal, error) {
-	// TODO: implement
-	panic("unimplemented")
+	tok := p.next()
+	switch tok.Typ {
+	case tokenTrue:
+		lit := Literal{
+			tok.Val,
+			"xsd:boolean", // TODO: should probably make this a const
+			"",
+		}
+		return lit, nil
+	case tokenFalse:
+		lit := Literal{
+			tok.Val,
+			"xsd:boolean", // TODO: should probably make this a const
+			"",
+		}
+		return lit, nil
+	default:
+		return Literal{}, fmt.Errorf("Expected a boolean literal token, got %s", tok)
+	}
 }
