@@ -25,3 +25,24 @@ func (m *mockLexer) NextToken() easylex.Token {
 	m.pos += 1
 	return ret
 }
+
+type typeMockLexer struct {
+	types []easylex.TokenType
+	pos   int
+}
+
+func newTypeMockLexer(args ...easylex.TokenType) *typeMockLexer {
+	return &typeMockLexer{
+		types: args,
+		pos:   0,
+	}
+}
+
+func (m *typeMockLexer) NextToken() easylex.Token {
+	typ := m.types[m.pos]
+	m.pos += 1
+	return easylex.Token{
+		typ,
+		"n/a",
+	}
+}
