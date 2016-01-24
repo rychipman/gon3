@@ -29,7 +29,17 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// TODO: handle decimal vs period
 		return lexNumericLiteral
-	case '^', '[', ']', '(', ')', ';', ',', '.':
+	case '[':
+		// anon
+		l.Next()
+		matchWhitespace.MatchRun(l)
+		if matchCloseBracket.MatchOne(l) {
+			l.Emit(tokenAnon)
+			return lexDocument
+		}
+		l.Emit(tokenStartBlankNodePropertyList)
+		return lexDocument
+	case '^', ']', '(', ')', ';', ',', '.':
 		return lexPunctuation
 	case 't', 'f', 'a', 'b', 'B', 'p', 'P':
 		if matchTrue.MatchOne(l) {
@@ -358,11 +368,9 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 }
 
 func lexPunctuation(l *easylex.Lexer) easylex.StateFn {
-	// ^ [ ] ( ) ; , .
+	// ^ ] ( ) ; , .
 	if matchDoubleCaret.MatchOne(l) {
 		l.Emit(tokenLiteralDatatypeTag)
-	} else if matchOpenBracket.MatchOne(l) {
-		l.Emit(tokenStartBlankNodePropertyList)
 	} else if matchCloseBracket.MatchOne(l) {
 		l.Emit(tokenEndBlankNodePropertyList)
 	} else if matchOpenParens.MatchOne(l) {
