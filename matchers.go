@@ -19,9 +19,11 @@ var (
 	matchLongSingleQuote = easylex.NewMatcher().AcceptString(`'''`)
 	matchDoubleCaret     = easylex.NewMatcher().AcceptString(`^^`)
 
-	matchTrue  = easylex.NewMatcher().AcceptString("true")
-	matchFalse = easylex.NewMatcher().AcceptString("false")
-	matchA     = easylex.NewMatcher().AcceptRunes("a")
+	matchTrue         = easylex.NewMatcher().AcceptString("true")
+	matchFalse        = easylex.NewMatcher().AcceptString("false")
+	matchA            = easylex.NewMatcher().AcceptRunes("a")
+	matchSPARQLBase   = easylex.NewMatcher().AcceptString("base").AcceptString("BASE")
+	matchSPARQLPrefix = easylex.NewMatcher().AcceptString("prefix").AcceptString("PREFIX")
 
 	matchEscapable    = easylex.NewMatcher().AcceptRunes("_~.-!$&'()*+,;=/?#@%")
 	matchHex          = easylex.NewMatcher().AcceptRunes("0123456789abcdefABCDEF")

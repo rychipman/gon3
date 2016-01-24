@@ -32,7 +32,7 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		return lexNumericLiteral
 	case '^', '[', ']', '(', ')', ';', ',', '.':
 		return lexPunctuation
-	case 't', 'f', 'a':
+	case 't', 'f', 'a', 'b', 'B', 'p', 'P':
 		if matchTrue.MatchOne(l) {
 			if isWhitespace(l.Peek()) {
 				l.Emit(tokenTrue)
@@ -48,6 +48,18 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		if matchA.MatchOne(l) {
 			if isWhitespace(l.Peek()) {
 				l.Emit(tokenA)
+				return lexDocument
+			}
+		}
+		if matchSPARQLBase.MatchOne(l) {
+			if isWhitespace(l.Peek()) {
+				l.Emit(tokenSPARQLBase)
+				return lexDocument
+			}
+		}
+		if matchSPARQLPrefix.MatchOne(l) {
+			if isWhitespace(l.Peek()) {
+				l.Emit(tokenSPARQLPrefix)
 				return lexDocument
 			}
 		}

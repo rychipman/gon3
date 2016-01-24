@@ -8,6 +8,8 @@ const (
 	// tokens expressed as literal strings in http://www.w3.org/TR/turtle/#sec-grammar-grammar
 	tokenAtPrefix easylex.TokenType = iota
 	tokenAtBase
+	tokenSPARQLPrefix
+	tokenSPARQLBase
 	tokenEndTriples
 	tokenA
 	tokenPredicateListSeparator

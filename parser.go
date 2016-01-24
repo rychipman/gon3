@@ -99,7 +99,16 @@ func (p *Parser) parseStatement() error {
 		}
 	case tokenAtBase:
 		err := p.parseBase()
-		// TODO: support tokenSPARQLBase, token SPARQLPrefix
+		if err != nil {
+			return err
+		}
+	case tokenSPARQLBase:
+		err := p.ParseSPARQLBase()
+		if err != nil {
+			return err
+		}
+	case tokenSPARQLPrefix:
+		err := p.ParseSPARQLPrefix()
 		if err != nil {
 			return err
 		}
