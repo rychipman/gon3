@@ -259,12 +259,16 @@ func (p *Parser) parseSubject() error {
 		p.curSubject = iri
 		return err
 	case tokenBlankNodeLabel:
-		// TODO: what is the deal with the anon token?
 		p.next()
 		label := tok.Val // TODO: parse the label out of token value
 		bNode, err := p.blankNode(label)
 		p.curSubject = bNode
 		return err
+	case tokenAnon:
+		p.next()
+		// TODO: correctly allocate new bNode
+		p.curSubject = BlankNode{}
+		return nil
 	case tokenStartCollection:
 		bNode, err := p.parseCollection()
 		p.curSubject = bNode
@@ -365,6 +369,8 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 
 	// TODO: make sure this holds up for empty collections.
 	// Also note that empty collections are probably what tokenAnon is.
+	// or, alternatively, maybe this should fail on empty bnode prop list
+
 	_, err = p.expect(tokenEndCollection)
 	if err != nil {
 		return BlankNode{}, err
@@ -393,12 +399,16 @@ func (p *Parser) parseObject() error {
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
 	case tokenBlankNodeLabel:
-		// TODO: what is the deal with the anon token?
 		p.next()
 		label := tok.Val // TODO: parse the label out of token value
 		bNode, err := p.blankNode(label)
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return err
+	case tokenAnon:
+		p.next()
+		// TODO: properly generate bnode
+		p.emitTriple(p.curSubject, p.curPredicate, BlankNode{})
+		return nil
 	case tokenStartCollection:
 		bNode, err := p.parseCollection()
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
