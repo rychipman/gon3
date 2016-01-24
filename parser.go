@@ -28,8 +28,11 @@ func NewParser(input string) *Parser {
 		baseURI:       "", // TODO
 		namespaces:    map[string]IRI{},
 		bNodeLabels:   map[string]BlankNode{},
-		lastBlankNode: BlankNode{-1},
+		lastBlankNode: BlankNode{-1, ""},
+		curSubject:    nil,
+		curPredicate:  IRI(""),
 	}
+	return p
 }
 
 func (p *Parser) Parse() (Graph, error) {
@@ -51,6 +54,7 @@ func (p *Parser) peek() easylex.Token {
 	default:
 		p.nextTok <- p.lex.NextToken()
 	}
+	panic("unreachable")
 }
 
 func (p *Parser) next() easylex.Token {
@@ -60,6 +64,7 @@ func (p *Parser) next() easylex.Token {
 	default:
 		p.nextTok <- p.lex.NextToken()
 	}
+	panic("unreachable")
 }
 
 func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work out typing things
@@ -401,7 +406,7 @@ func (p *Parser) parseLiteral() (Literal, error) {
 		lit, err := p.parseBooleanLiteral()
 		return lit, err
 	default:
-		return nil, fmt.Errorf("Expected a literal token, got %v", tok)
+		return Literal{}, fmt.Errorf("Expected a literal token, got %v", tok)
 	}
 	panic("unreachable")
 }
