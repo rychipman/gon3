@@ -15,8 +15,8 @@ var (
 	matchWhitespace      = easylex.NewMatcher().AcceptRunes("\u0020\u0009\u000D\u000A")
 	matchQuote           = easylex.NewMatcher().AcceptRunes(`"`)
 	matchSingleQuote     = easylex.NewMatcher().AcceptRunes(`'`)
-	matchLongQuote       = easylex.NewMatcher().AcceptRunes(`"""`)
-	matchLongSingleQuote = easylex.NewMatcher().AcceptRunes(`'''`)
+	matchLongQuote       = easylex.NewMatcher().AcceptString(`"""`)
+	matchLongSingleQuote = easylex.NewMatcher().AcceptString(`'''`)
 	matchDoubleCaret     = easylex.NewMatcher().AcceptString(`^^`)
 
 	matchTrue  = easylex.NewMatcher().AcceptString("true")

@@ -1,6 +1,7 @@
 package gon3
 
 import (
+	"fmt"
 	"github.com/rychipman/easylex"
 	"strings"
 )
@@ -157,7 +158,11 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 
 func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 	if matchLongQuote.MatchOne(l) {
+		fmt.Printf("hi")
 		for {
+			if matchLongQuote.MatchOne(l) {
+				break
+			}
 			q := matchQuote.MatchOne(l)
 			q = matchQuote.MatchOne(l) || q
 			ch := true
@@ -184,20 +189,18 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 					ch = false
 				}
 			}
-			if !q && !ch {
-				break
-			}
 			if q && !ch {
 				// TODO: error
 			}
 		}
-		matchLongQuote.MatchOne(l)
-		// TODO: assert
 		l.Emit(tokenStringLiteralLongQuote)
 		return lexDocument
 	}
 	if matchLongSingleQuote.MatchOne(l) {
 		for {
+			if matchLongSingleQuote.MatchOne(l) {
+				break
+			}
 			q := matchSingleQuote.MatchOne(l)
 			q = matchSingleQuote.MatchOne(l) || q
 			ch := true
@@ -227,12 +230,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 			if !q && !ch {
 				break
 			}
-			if q && !ch {
-				// TODO: error
-			}
 		}
-		matchLongSingleQuote.MatchOne(l)
-		// TODO: assert
 		l.Emit(tokenStringLiteralLongSingleQuote)
 		return lexDocument
 	}
