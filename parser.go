@@ -424,7 +424,7 @@ func (p *Parser) parseObject() error {
 		p.emitTriple(p.curSubject, p.curPredicate, lit)
 		return err
 	default:
-		return fmt.Errorf("Expected object, got %v", tok)
+		return fmt.Errorf("Expected object, got %v (type %s)", tok, tok.Typ)
 	}
 }
 
