@@ -124,6 +124,11 @@ func (p *Parser) parsePrefix() error {
 	if iriRef.Typ != tokenIRIRef {
 		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
 	}
+	// expect "." token
+	period := p.next()
+	if period.Typ != tokenEndTriples {
+		return fmt.Errorf("Expected tokenEndTriples, got %v", period)
+	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
 	val, err := p.absIRI(iriRef.Val)
@@ -141,6 +146,11 @@ func (p *Parser) parseBase() error {
 	iriRef := p.next()
 	if iriRef.Typ != tokenIRIRef {
 		return fmt.Errorf("Expected tokenIRIRef, got %v", iriRef)
+	}
+	// expect "." token
+	period := p.next()
+	if period.Typ != tokenEndTriples {
+		return fmt.Errorf("Expected tokenEndTriples, got %v", period)
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
