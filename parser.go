@@ -73,7 +73,7 @@ func (p *Parser) next() easylex.Token {
 func (p *Parser) expect(typ easylex.TokenType) (easylex.Token, error) {
 	tok := p.next()
 	if tok.Typ != typ {
-		return tok, fmt.Errorf("Expected %s, got %s", typ, tok.Typ)
+		return tok, fmt.Errorf("Expected %s, got %s (type %s)", typ, tok.Val, tok.Typ)
 	}
 	return tok, nil
 }
