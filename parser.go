@@ -9,7 +9,8 @@ type Parser struct {
 	// target data structure
 	Graph Graph
 	// parser state
-	lex           *easylex.Lexer // TODO: initialize lexer
+	lex           *easylex.Lexer     // TODO: initialize lexer
+	nextTok       chan easylex.Token // TODO: initialize this with a buffer of 1
 	baseURI       IRI
 	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
 	bNodeLabels   map[string]BlankNode
@@ -19,11 +20,22 @@ type Parser struct {
 }
 
 func (p *Parser) peek() easylex.Token {
-	panic("unimplemented")
+	select {
+	case t := <-p.nextTok:
+		p.nextTok <- t
+		return t
+	default:
+		p.nextTok <- p.lex.NextToken()
+	}
 }
 
 func (p *Parser) next() easylex.Token {
-	panic("unimplemented")
+	select {
+	case t := <-p.nextTok:
+		return t
+	default:
+		p.nextTok <- p.lex.NextToken()
+	}
 }
 
 func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work out typing things
