@@ -14,8 +14,8 @@ type Parser struct {
 	baseURI       IRI
 	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
 	bNodeLabels   map[string]BlankNode
-	lastBlankNode BlankNode // TODO: initialize this to -1
-	curSubject    RDFTerm   // TODO: create RDFTerm type (or perhaps interface)
+	lastBlankNode BlankNode
+	curSubject    RDFTerm
 	curPredicate  IRI
 }
 
@@ -25,7 +25,7 @@ func NewParser(input string) *Parser {
 		Graph:         []*Triple{},
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
-		baseURI:       "", // TODO
+		baseURI:       "", // TODO: properly set a baseuri
 		namespaces:    map[string]IRI{},
 		bNodeLabels:   map[string]BlankNode{},
 		lastBlankNode: BlankNode{-1, ""},
@@ -77,7 +77,7 @@ func (p *Parser) expect(typ easylex.TokenType) (easylex.Token, error) {
 	return tok, nil
 }
 
-func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work out typing things
+func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) {
 	trip := &Triple{
 		Subject:   subj,
 		Predicate: pred,
