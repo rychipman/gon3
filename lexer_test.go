@@ -17,7 +17,7 @@ func TestLexer(t *testing.T) {
 	}
 	currentTests = positiveTests
 
-	verbose := false
+	verbosity := 0
 
 	for _, testName := range currentTests {
 		testFile := "./tests/turtle/lex/" + testName
@@ -25,19 +25,23 @@ func TestLexer(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error reading test file %s", testFile)
 		}
-		fmt.Printf("\nStarting test %s\n", testName)
+		if verbosity > 0 {
+			fmt.Printf("\nStarting test %s\n", testName)
+		}
 		l := easylex.Lex(string(b), lexDocument)
 		for {
 			token := l.NextToken()
 			tokenType := token.Typ
 			if tokenType == easylex.TokenEOF {
-				fmt.Printf("Test %s passed.\n", testName)
+				if verbosity > 0 {
+					fmt.Printf("Test %s passed.\n", testName)
+				}
 				break
 			}
 			if tokenType == easylex.TokenError {
 				t.Fatalf("Test %s failed.", testFile)
 			}
-			if verbose {
+			if verbosity > 1 {
 				fmt.Printf("%s -- %s\n", tokenType, token)
 			}
 		}
