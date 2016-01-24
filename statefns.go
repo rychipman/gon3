@@ -420,10 +420,11 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 			matchHex.MatchOne(l)
 			// TODO: assert
 			other = true
-		} else {
-			easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).MatchOne(l)
-			// TODO: assert
+		} else if l.Peek() == ':' {
+			l.Next()
 			other = true
+		} else {
+			other = matchPNChars.MatchRun(l)
 		}
 		if !other {
 			if period {
