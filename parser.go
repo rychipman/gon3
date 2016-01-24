@@ -516,16 +516,25 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 	}
 	if p.peek().Typ == tokenLiteralDatatypeTag {
 		p.next()
-		dtype, err := p.expect(tokenIRIRef)
-		if err != nil {
-			return Literal{}, err
+		tok := p.next()
+		switch tok.Typ {
+		case tokenIRIRef:
+			// TODO: make sure IRI is getting created properly
+			iri, err := newIRI(tok.Val)
+			if err != nil {
+				return Literal{}, err
+			}
+			lit.DatatypeIRI = iri
+		case tokenPNameLN:
+			// TODO: resolve pname to an iri
+			iri, err := newIRI(tok.Val)
+			if err != nil {
+				return Literal{}, err
+			}
+			lit.DatatypeIRI = iri
+		default:
+			return Literal{}, fmt.Errorf("Expected an IRI or PName, got %s (type %s)", tok.Val, tok.Typ)
 		}
-		// TODO: make sure IRI is getting created properly
-		iri, err := newIRI(dtype.Val)
-		if err != nil {
-			return Literal{}, err
-		}
-		lit.DatatypeIRI = iri
 	}
 	return lit, nil
 }
