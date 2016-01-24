@@ -544,7 +544,7 @@ func (p *Parser) parseBooleanLiteral() (Literal, error) {
 		lit := Literal{
 			tok.Val,
 			"xsd:boolean", // TODO: should probably make this a const
-			"",
+			"",            // TODO: also note that xsd = <http://www.w3.org/2001/XMLSchema#>
 		}
 		return lit, nil
 	default:
