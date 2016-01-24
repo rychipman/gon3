@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-func TestParser(t *testing.T) {
-	for _, tokSet := range parseTests {
-		mock := newMockLexer(tokSet.tokens...)
+func TestParserControlFlow(t *testing.T) {
+	for _, tokSet := range parseFlowTests {
+		mock := newTypeMockLexer(tokSet.tokens...)
 		p := NewParser("")
 		p.lex = mock
 		_, err := p.Parse()
@@ -23,8 +23,19 @@ func TestParser(t *testing.T) {
 	}
 }
 
-var parseTests = []struct {
+var parseFlowTests = []struct {
 	name       string
-	tokens     []easylex.Token
+	tokens     []easylex.TokenType
 	shouldPass bool
-}{}
+}{
+	{
+		"Simple @base declaration",
+		[]easylex.TokenType{tokenAtBase, tokenIRIRef, tokenEndTriples, easylex.TokenEOF},
+		true,
+	},
+	{
+		"Malformed @base declaration",
+		[]easylex.TokenType{tokenAtBase, tokenIRIRef, easylex.TokenEOF},
+		false,
+	},
+}
