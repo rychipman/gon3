@@ -19,7 +19,7 @@ type Parser struct {
 	curPredicate  IRI
 }
 
-func Parse(input string) (Graph, error) {
+func NewParser(input string) *Parser {
 	// initialize parser
 	p := &Parser{
 		Graph:         []*Triple{},
@@ -30,6 +30,9 @@ func Parse(input string) (Graph, error) {
 		bNodeLabels:   map[string]BlankNode{},
 		lastBlankNode: BlankNode{-1},
 	}
+}
+
+func (p *Parser) Parse() (Graph, error) {
 	var err error
 	for { // while the next token is not an EOF
 		err = p.parseStatement()
