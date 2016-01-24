@@ -38,8 +38,8 @@ func NewParser(input string) *Parser {
 func (p *Parser) Parse() (Graph, error) {
 	var err error
 	for { // while the next token is not an EOF
-		err = p.parseStatement()
-		if err != nil {
+		done, err := p.parseStatement()
+		if done || err != nil {
 			break
 		}
 	}
@@ -102,36 +102,40 @@ func (p *Parser) blankNode(label string) (BlankNode, error) {
 	return newNode, nil
 }
 
-func (p *Parser) parseStatement() error {
+func (p *Parser) parseStatement() (bool, error) {
 	tok := p.peek()
 	switch tok.Typ {
+	case easylex.TokenError:
+		return false, fmt.Errorf("Received tokenError: %q", tok)
+	case easylex.TokenEOF:
+		return true, nil
 	case tokenAtPrefix:
 		err := p.parsePrefix()
 		if err != nil {
-			return err
+			return false, err
 		}
 	case tokenAtBase:
 		err := p.parseBase()
 		if err != nil {
-			return err
+			return false, err
 		}
 	case tokenSPARQLBase:
 		err := p.parseSPARQLBase()
 		if err != nil {
-			return err
+			return false, err
 		}
 	case tokenSPARQLPrefix:
 		err := p.parseSPARQLPrefix()
 		if err != nil {
-			return err
+			return false, err
 		}
 	default:
 		err := p.parseTriples()
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func (p *Parser) parsePrefix() error {
