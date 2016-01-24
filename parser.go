@@ -69,6 +69,7 @@ func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) { // TODO: work
 }
 
 func (p *Parser) absIRI(iri string) (IRI, error) {
+	// TODO: implement
 	// if first char not '<', process as prefixed name
 	// else if relative, resolve according to http://www.w3.org/TR/turtle/#sec-iri-references
 	// finally, remove unicode escape sequences
@@ -86,7 +87,6 @@ func (p *Parser) blankNode(label string) (BlankNode, error) {
 }
 
 func (p *Parser) parseStatement() error {
-	// TODO: check if triples or directive
 	tok := p.peek()
 	switch tok.Typ {
 	case tokenAtPrefix:
@@ -192,7 +192,6 @@ func (p *Parser) parseTriples() error {
 }
 
 func (p *Parser) parseSubject() error {
-	// TODO: implement
 	tok := p.peek()
 	// expect a valid subject term, which is one of
 	// iri|blanknode|collection
@@ -287,7 +286,6 @@ func (p *Parser) parseObjectList() error {
 }
 
 func (p *Parser) parseCollection() (BlankNode, error) {
-	// TODO: implement
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
 	// expect tokenStartCollection
@@ -295,8 +293,8 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	if tok.Typ != tokenStartCollection {
 		return BlankNode{}, fmt.Errorf("Expected tokenStartCollection, got %v", tok)
 	}
-	// set curSubject to a new blank node bNode
-	// set curPredicate to rdf:first
+	// TODO: set curSubject to a new blank node bNode
+	// TODO: set curPredicate to rdf:first
 	next := p.peek()
 	for next.Typ != tokenEndCollection {
 		err := p.parseObject()
@@ -304,21 +302,23 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 			return BlankNode{}, err
 		}
 	}
-	// TODO make sure this holds up for empty collections
+
+	// TODO: make sure this holds up for empty collections.
+	// Also note that empty collections are probably what tokenAnon is.
+
 	// expect tokenEndCollection
 	tok = p.next()
 	if tok.Typ != tokenEndCollection {
 		return BlankNode{}, fmt.Errorf("Expected tokenEndCollection, got %v", tok)
 	}
-	// emit triple p.curSubject rdf:rest rdf:nil
+	// TODO: emit triple p.curSubject rdf:rest rdf:nil
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
-	bNode := BlankNode{} // TODO: this blank node should actually be something
+	bNode := BlankNode{} // TODO: return bNode created above
 	return bNode, nil
 }
 
 func (p *Parser) parseObject() error {
-	// TODO: implement
 	// expect an object
 	// where object = iri|blanknode|collection|blanknodepropertylist|literal
 	tok := p.peek()
@@ -360,7 +360,7 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	if tok.Typ != tokenStartBlankNodePropertyList {
 		return BlankNode{}, fmt.Errorf("Expected tokenStartBlankNodePropertyList, got %v", tok)
 	}
-	// set curSubject to a new blank node bNode
+	// TODO: set curSubject to a new blank node bNode
 	err := p.parsePredicateObjectList()
 	if err != nil {
 		return BlankNode{}, err
@@ -372,7 +372,7 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
-	bNode := BlankNode{} // TODO: this bnode should be something
+	bNode := BlankNode{} // TODO: return the bNode created above
 	return bNode, nil
 }
 
@@ -388,8 +388,9 @@ func (p *Parser) parseLiteral() (Literal, error) {
 	case tokenTrue, tokenFalse:
 		lit, err := p.parseBooleanLiteral()
 		return lit, err
+	default:
+		return nil, fmt.Errorf("Expected a literal token, got %v", tok)
 	}
-	// TODO should this actually be unreachable?
 	panic("unreachable")
 }
 
