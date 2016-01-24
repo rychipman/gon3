@@ -37,8 +37,9 @@ func NewParser(input string) *Parser {
 
 func (p *Parser) Parse() (Graph, error) {
 	var err error
+	var done bool
 	for { // while the next token is not an EOF
-		done, err := p.parseStatement()
+		done, err = p.parseStatement()
 		if done || err != nil {
 			break
 		}
