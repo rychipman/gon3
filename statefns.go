@@ -1,7 +1,6 @@
 package gon3
 
 import (
-	"fmt"
 	"github.com/rychipman/easylex"
 	"strings"
 )
@@ -170,7 +169,6 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 
 func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 	if matchLongQuote.MatchOne(l) {
-		fmt.Printf("hi")
 		for {
 			if matchLongQuote.MatchOne(l) {
 				break
