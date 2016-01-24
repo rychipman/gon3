@@ -212,16 +212,8 @@ func (p *Parser) parseSPARQLBase() error {
 }
 
 func (p *Parser) parseTriples() error {
-	if true { // if "subject predicateobjectlist"
-		err := p.parseSubject()
-		if err != nil {
-			return err
-		}
-		err = p.parsePredicateObjectList()
-		if err != nil {
-			return err
-		}
-	} else { // if "blanknodepropertylist predicateobjectlist?"
+	if p.peek().Typ == tokenStartBlankNodePropertyList {
+		// if "blanknodepropertylist predicateobjectlist?"
 		bNode, err := p.parseBlankNodePropertyList()
 		if err != nil {
 			return err
@@ -233,6 +225,16 @@ func (p *Parser) parseTriples() error {
 			if err != nil {
 				return err
 			}
+		}
+	} else {
+		// if "subject predicateobjectlist"
+		err := p.parseSubject()
+		if err != nil {
+			return err
+		}
+		err = p.parsePredicateObjectList()
+		if err != nil {
+			return err
 		}
 	}
 	_, err := p.expect(tokenEndTriples)
