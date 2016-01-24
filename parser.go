@@ -9,7 +9,7 @@ type Parser struct {
 	// target data structure
 	Graph Graph
 	// parser state
-	lex           *easylex.Lexer
+	lex           lexer
 	nextTok       chan easylex.Token
 	baseURI       IRI
 	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
