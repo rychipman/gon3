@@ -8,7 +8,18 @@ import (
 )
 
 func TestLexer(t *testing.T) {
-	for _, testName := range positiveTests {
+
+	currentTests = []string{
+		"turtle-syntax-base-01.ttl",
+		"turtle-syntax-base-02.ttl",
+		"turtle-syntax-base-03.ttl",
+		"turtle-syntax-base-04.ttl",
+	}
+	currentTests = positiveTests
+
+	verbose := false
+
+	for _, testName := range currentTests {
 		testFile := "./tests/turtle/lex/" + testName
 		b, err := ioutil.ReadFile(testFile)
 		if err != nil {
@@ -26,11 +37,14 @@ func TestLexer(t *testing.T) {
 			if tokenType == easylex.TokenError {
 				t.Fatalf("Test %s failed.", testFile)
 			}
-			//fmt.Printf("%s -- %s\n", tokenType, token)
+			if verbose {
+				fmt.Printf("%s -- %s\n", tokenType, token)
+			}
 		}
 	}
 }
 
+var currentTests []string
 var positiveTests []string = []string{
 	"turtle-syntax-base-01.ttl",
 	"turtle-syntax-base-02.ttl",
