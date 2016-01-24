@@ -298,13 +298,20 @@ func (p *Parser) parsePredicateObjectList() error {
 		if err != nil {
 			return err
 		}
-		err = p.parsePredicate()
-		if err != nil {
-			return err
-		}
-		err = p.parseObjectList()
-		if err != nil {
-			return err
+		tok := p.peek()
+		switch tok.Typ {
+		case tokenA, tokenIRIRef, tokenPNameLN, tokenPNameNS:
+			// if there is a predicate
+			err = p.parsePredicate()
+			if err != nil {
+				return err
+			}
+			err = p.parseObjectList()
+			if err != nil {
+				return err
+			}
+		default:
+			// done parsing predicateobjectlist
 		}
 	}
 	return nil
