@@ -270,7 +270,7 @@ func (p *Parser) parseSubject() error {
 		p.curSubject = bNode
 		return err
 	default:
-		return fmt.Errorf("Expected a subject, got %v", tok)
+		return fmt.Errorf("Expected a subject, got %v (type %s)", tok, tok.Typ)
 	}
 }
 
