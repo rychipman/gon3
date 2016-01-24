@@ -7,6 +7,9 @@ import (
 )
 
 func TestParserControlFlow(t *testing.T) {
+
+	verbosity := 0
+
 	for _, tokSet := range parseFlowTests {
 		mock := newTypeMockLexer(tokSet.tokens...)
 		p := NewParser("")
@@ -19,7 +22,9 @@ func TestParserControlFlow(t *testing.T) {
 		if passed != tokSet.shouldPass {
 			t.Fatalf("FAIL test %q. Expected pass=%t, got pass=%t", tokSet.name, tokSet.shouldPass, passed)
 		}
-		fmt.Printf("Passed test %q\n", tokSet.name)
+		if verbosity > 0 {
+			fmt.Printf("Passed test %q\n", tokSet.name)
+		}
 	}
 }
 

@@ -39,7 +39,7 @@ func TestLexer(t *testing.T) {
 				break
 			}
 			if tokenType == easylex.TokenError {
-				t.Fatalf("Test %s failed.", testFile)
+				t.Fatalf("Test %s failed.", testName)
 			}
 			if verbosity > 1 {
 				fmt.Printf("%s -- %s\n", tokenType, token)
