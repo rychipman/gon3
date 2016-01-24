@@ -11,29 +11,29 @@ const (
 	tokenSPARQLPrefix
 	tokenSPARQLBase
 	tokenEndTriples
-	tokenA
+	tokenA // 5
 	tokenPredicateListSeparator
 	tokenObjectListSeparator
 	tokenStartBlankNodePropertyList
 	tokenEndBlankNodePropertyList
-	tokenStartCollection
+	tokenStartCollection // 10
 	tokenEndCollection
 	tokenLiteralDatatypeTag // TODO: rename
 	tokenTrue
 	tokenFalse
 
 	// terminal tokens from http://www.w3.org/TR/turtle/#terminals
-	tokenIRIRef
+	tokenIRIRef // 15
 	tokenPNameNS
 	tokenPNameLN
 	tokenBlankNodeLabel
 	tokenLangTag
-	tokenInteger
+	tokenInteger // 20
 	tokenDecimal
 	tokenDouble
 	tokenExponent
 	tokenStringLiteralQuote
-	tokenStringLiteralSingleQuote
+	tokenStringLiteralSingleQuote // 25
 	tokenStringLiteralLongQuote
 	tokenStringLiteralLongSingleQuote
 	tokenAnon
