@@ -16,6 +16,8 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 	case easylex.EOF:
 		l.Emit(easylex.TokenEOF)
 		return nil
+	case '#':
+		return lexComment
 	case '@':
 		return lexAtStatement
 	case '_':
@@ -60,6 +62,14 @@ func isWhitespace(r rune) bool {
 		return true
 	}
 	return false
+}
+
+func lexComment(l *easylex.Lexer) easylex.StateFn {
+	easylex.NewMatcher().AcceptRunes("#").MatchOne(l)
+	// TODO: assert
+	easylex.NewMatcher().RejectRunes("\n").MatchRun(l)
+	l.Ignore()
+	return lexDocument
 }
 
 func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
