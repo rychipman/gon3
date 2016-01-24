@@ -17,6 +17,7 @@ var (
 	matchSingleQuote     = easylex.NewMatcher().AcceptRunes(`'`)
 	matchLongQuote       = easylex.NewMatcher().AcceptRunes(`"""`)
 	matchLongSingleQuote = easylex.NewMatcher().AcceptRunes(`'''`)
+	matchDoubleCaret     = easylex.NewMatcher().AcceptString(`^^`)
 
 	matchTrue  = easylex.NewMatcher().AcceptString("true")
 	matchFalse = easylex.NewMatcher().AcceptString("false")
