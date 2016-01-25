@@ -63,6 +63,7 @@ func (p *Parser) next() easylex.Token {
 	for {
 		select {
 		case t := <-p.nextTok:
+			fmt.Printf("TOKEN: %s (type %s)\n", t, t.Typ)
 			return t
 		default:
 			p.nextTok <- p.lex.NextToken()
@@ -254,7 +255,7 @@ func (p *Parser) parseSubject() error {
 		iri, err := newIRI(tok.Val)
 		p.curSubject = iri
 		return err
-	case tokenPNameLN:
+	case tokenPNameLN, tokenPNameNS:
 		p.next()
 		// TODO: resolve pname to an iri
 		iri, err := newIRI(tok.Val)
@@ -330,7 +331,7 @@ func (p *Parser) parsePredicate() error {
 		iri, err := newIRI(tok.Val)
 		p.curPredicate = iri
 		return err
-	case tokenPNameLN:
+	case tokenPNameLN, tokenPNameNS:
 		// TODO: resolve pname into an iri
 		iri, err := newIRI(tok.Val)
 		p.curPredicate = iri
@@ -402,7 +403,7 @@ func (p *Parser) parseObject() error {
 		iri, err := newIRI(tok.Val)
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
-	case tokenPNameLN:
+	case tokenPNameLN, tokenPNameNS:
 		p.next()
 		// TODO: resolve pname into an iri
 		iri, err := newIRI(tok.Val)
@@ -533,7 +534,7 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 				return Literal{}, err
 			}
 			lit.DatatypeIRI = iri
-		case tokenPNameLN:
+		case tokenPNameLN, tokenPNameNS:
 			// TODO: resolve pname to an iri
 			iri, err := newIRI(tok.Val)
 			if err != nil {
