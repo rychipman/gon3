@@ -17,7 +17,7 @@ func newIRI(iri string) (IRI, error) {
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
 type BlankNode struct {
-	id    int
+	Id    int
 	Label string
 }
 

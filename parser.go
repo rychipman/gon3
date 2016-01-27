@@ -88,14 +88,22 @@ func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) {
 	p.Graph = append(p.Graph, trip)
 }
 
-func (p *Parser) blankNode(label string) (BlankNode, error) {
-	// TODO: when would we return an error?
+func (p *Parser) blankNode(label string) BlankNode {
 	if node, present := p.bNodeLabels[label]; present {
-		return node, nil
+		return node
 	}
-	newNode := BlankNode{p.lastBlankNode.id + 1, "somelabelname"} // TODO: def not correct
+	newNode := p.newBlankNode(label)
 	p.bNodeLabels[label] = newNode
-	return newNode, nil
+	return newNode
+}
+
+func (p *Parser) newBlankNode(label string) BlankNode {
+	b := BlankNode{
+		Id:    p.lastBlankNode.Id + 1,
+		Label: label,
+	}
+	p.lastBlankNode = b
+	return b
 }
 
 func (p *Parser) parseStatement() (bool, error) {
@@ -264,13 +272,12 @@ func (p *Parser) parseSubject() error {
 	case tokenBlankNodeLabel:
 		p.next()
 		label := tok.Val // TODO: parse the label out of token value
-		bNode, err := p.blankNode(label)
+		bNode := p.blankNode(label)
 		p.curSubject = bNode
-		return err
+		return nil
 	case tokenAnon:
 		p.next()
-		// TODO: correctly allocate new bNode
-		p.curSubject = BlankNode{}
+		p.curSubject = p.newBlankNode("anon") // TODO: how should i set this string?
 		return nil
 	case tokenStartCollection:
 		bNode, err := p.parseCollection()
@@ -367,7 +374,8 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	if err != nil {
 		return BlankNode{}, err
 	}
-	// TODO: set curSubject to a new blank node bNode
+	bNode := p.newBlankNode("collectionBNode") // TODO: name
+	p.curSubject = bNode
 	// TODO: set curPredicate to rdf:first
 	next := p.peek()
 	for next.Typ != tokenEndCollection {
@@ -389,7 +397,6 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	// TODO: emit triple p.curSubject rdf:rest rdf:nil
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
-	bNode := BlankNode{} // TODO: return bNode created above
 	return bNode, nil
 }
 
@@ -412,13 +419,13 @@ func (p *Parser) parseObject() error {
 	case tokenBlankNodeLabel:
 		p.next()
 		label := tok.Val // TODO: parse the label out of token value
-		bNode, err := p.blankNode(label)
+		bNode := p.blankNode(label)
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
-		return err
+		return nil
 	case tokenAnon:
 		p.next()
-		// TODO: properly generate bnode
-		p.emitTriple(p.curSubject, p.curPredicate, BlankNode{})
+		bNode := p.newBlankNode("anon") // TODO: name
+		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return nil
 	case tokenStartCollection:
 		bNode, err := p.parseCollection()
@@ -445,7 +452,8 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	if err != nil {
 		return BlankNode{}, err
 	}
-	// TODO: set curSubject to a new blank node bNode
+	bNode := p.newBlankNode("bnodeproplist") // TODO: name
+	p.curSubject = bNode
 	err = p.parsePredicateObjectList()
 	if err != nil {
 		return BlankNode{}, err
@@ -457,7 +465,6 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
-	bNode := BlankNode{} // TODO: return the bNode created above
 	return bNode, nil
 }
 
