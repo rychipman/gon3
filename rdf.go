@@ -15,6 +15,11 @@ func newIRI(iri string) (IRI, error) {
 	return IRI(iri), nil
 }
 
+func (i IRI) append(s string) IRI {
+	// TODO: implement
+	return IRI("")
+}
+
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
 type BlankNode struct {
 	Id    int

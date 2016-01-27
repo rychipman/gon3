@@ -3,6 +3,7 @@ package gon3
 import (
 	"fmt"
 	"github.com/rychipman/easylex"
+	"strings"
 )
 
 type Parser struct {
@@ -104,6 +105,16 @@ func (p *Parser) newBlankNode(label string) BlankNode {
 	}
 	p.lastBlankNode = b
 	return b
+}
+
+func (p *Parser) resolvePName(pname string) (IRI, error) {
+	strs := strings.Split(pname, ":")
+	prefix := strs[0]
+	name := strs[1]
+	if iri, present := p.namespaces[prefix]; present {
+		return iri.append(name), nil
+	}
+	return IRI(""), fmt.Errorf("Prefix %q not found in declared namespaces", prefix)
 }
 
 func (p *Parser) parseStatement() (bool, error) {
@@ -265,8 +276,7 @@ func (p *Parser) parseSubject() error {
 		return err
 	case tokenPNameLN, tokenPNameNS:
 		p.next()
-		// TODO: resolve pname to an iri
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolvePName(tok.Val)
 		p.curSubject = iri
 		return err
 	case tokenBlankNodeLabel:
@@ -339,8 +349,7 @@ func (p *Parser) parsePredicate() error {
 		p.curPredicate = iri
 		return err
 	case tokenPNameLN, tokenPNameNS:
-		// TODO: resolve pname into an iri
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolvePName(tok.Val)
 		p.curPredicate = iri
 		return err
 	default:
@@ -413,8 +422,7 @@ func (p *Parser) parseObject() error {
 		return err
 	case tokenPNameLN, tokenPNameNS:
 		p.next()
-		// TODO: resolve pname into an iri
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolvePName(tok.Val)
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
 	case tokenBlankNodeLabel:
@@ -543,8 +551,7 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 			}
 			lit.DatatypeIRI = iri
 		case tokenPNameLN, tokenPNameNS:
-			// TODO: resolve pname to an iri
-			iri, err := newIRI(tok.Val)
+			iri, err := p.resolvePName(tok.Val)
 			if err != nil {
 				return Literal{}, err
 			}
