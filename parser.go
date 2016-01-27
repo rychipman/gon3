@@ -376,7 +376,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	}
 	bNode := p.newBlankNode("collectionBNode") // TODO: name
 	p.curSubject = bNode
-	// TODO: set curPredicate to rdf:first
+	p.curPredicate = IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>") // TODO: make this a const or something
 	next := p.peek()
 	for next.Typ != tokenEndCollection {
 		err := p.parseObject()
@@ -394,7 +394,8 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	if err != nil {
 		return BlankNode{}, err
 	}
-	// TODO: emit triple p.curSubject rdf:rest rdf:nil
+	// TODO: use consts
+	p.emitTriple(p.curSubject, IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>"), IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>"))
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
 	return bNode, nil
@@ -492,21 +493,21 @@ func (p *Parser) parseNumericLiteral() (Literal, error) {
 	case tokenInteger:
 		lit := Literal{
 			tok.Val,
-			"xsd:integer", // TODO: should probably make this a const
+			IRI("<http://www.w3.org/2001/XMLSchema#integer>"), // TODO: const
 			"",
 		}
 		return lit, nil
 	case tokenDecimal:
 		lit := Literal{
 			tok.Val,
-			"xsd:decimal", // TODO: should probably make this a const
+			IRI("<http://www.w3.org/2001/XMLSchema#decimal>"), // TODO: const
 			"",
 		}
 		return lit, nil
 	case tokenDouble:
 		lit := Literal{
 			tok.Val,
-			"xsd:double", // TODO: should probably make this a const
+			IRI("<http://www.w3.org/2001/XMLSchema#double>"), // TODO: const
 			"",
 		}
 		return lit, nil
@@ -561,15 +562,15 @@ func (p *Parser) parseBooleanLiteral() (Literal, error) {
 	case tokenTrue:
 		lit := Literal{
 			tok.Val,
-			"xsd:boolean", // TODO: should probably make this a const
+			IRI("<http://www.w3.org/2001/XMLSchema#boolean>"), // TODO: const
 			"",
 		}
 		return lit, nil
 	case tokenFalse:
 		lit := Literal{
 			tok.Val,
-			"xsd:boolean", // TODO: should probably make this a const
-			"",            // TODO: also note that xsd = <http://www.w3.org/2001/XMLSchema#>
+			IRI("<http://www.w3.org/2001/XMLSchema#boolean>"), // TODO: const
+			"", // TODO: also note that xsd = <http://www.w3.org/2001/XMLSchema#>
 		}
 		return lit, nil
 	default:
