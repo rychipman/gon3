@@ -13,7 +13,7 @@ type Parser struct {
 	lex           lexer
 	nextTok       chan easylex.Token
 	baseURI       IRI
-	namespaces    map[string]IRI //map[prefix]IRI // TODO: create prefix type
+	namespaces    map[string]IRI
 	bNodeLabels   map[string]BlankNode
 	lastBlankNode BlankNode
 	curSubject    RDFTerm
@@ -204,8 +204,7 @@ func (p *Parser) parseBase() error {
 	if err != nil {
 		return err
 	}
-	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
-	// for now, assume it is an abs iri
+	// TODO: validate IRI?
 	p.baseURI, err = newIRIFromString(iriRef.Val)
 	return err
 }
@@ -239,8 +238,7 @@ func (p *Parser) parseSPARQLBase() error {
 	if err != nil {
 		return err
 	}
-	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
-	// for now, assume it is an abs iri
+	// TODO: validate IRI?
 	p.baseURI, err = newIRIFromString(iriRef.Val)
 	return err
 }
@@ -313,10 +311,6 @@ func (p *Parser) parseSubject() error {
 }
 
 func (p *Parser) parsePredicateObjectList() error {
-	// http://www.w3.org/TR/turtle/#predicate-lists
-	// TODO: figure out details of when semicolon is required
-	// currently, this assumes that there will not be a semicolon
-	// unless the list is continued
 	err := p.parsePredicate()
 	if err != nil {
 		return err
@@ -408,10 +402,6 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 		}
 		next = p.peek()
 	}
-
-	// TODO: make sure this holds up for empty collections.
-	// Also note that empty collections are probably what tokenAnon is.
-	// or, alternatively, maybe this should fail on empty bnode prop list
 
 	_, err = p.expect(tokenEndCollection)
 	if err != nil {
@@ -564,7 +554,6 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 		tok := p.next()
 		switch tok.Typ {
 		case tokenIRIRef:
-			// TODO: make sure IRI is getting created properly
 			iri, err := p.resolveIRI(tok.Val)
 			if err != nil {
 				return Literal{}, err
