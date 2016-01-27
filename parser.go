@@ -26,12 +26,12 @@ func NewParser(input string) *Parser {
 		Graph:         []*Triple{},
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
-		baseURI:       "", // TODO: properly set a baseuri
+		baseURI:       IRI{}, // TODO: properly set a baseuri
 		namespaces:    map[string]IRI{},
 		bNodeLabels:   map[string]BlankNode{},
 		lastBlankNode: BlankNode{-1, ""},
-		curSubject:    nil,
-		curPredicate:  IRI(""),
+		curSubject:    IRI{},
+		curPredicate:  IRI{},
 	}
 	return p
 }
@@ -112,9 +112,23 @@ func (p *Parser) resolvePName(pname string) (IRI, error) {
 	prefix := strs[0]
 	name := strs[1]
 	if iri, present := p.namespaces[prefix]; present {
-		return iri.append(name), nil
+		rel, err := iriRefToURL(name)
+		if err != nil {
+			return IRI{}, err
+		}
+		resolved := iri.url.ResolveReference(rel) // TODO: make sure this properly resolves weird things
+		return IRI{resolved}, nil
 	}
-	return IRI(""), fmt.Errorf("Prefix %q not found in declared namespaces", prefix)
+	return IRI{}, fmt.Errorf("Prefix %q not found in declared namespaces", prefix)
+}
+
+func (p *Parser) resolveIRI(iri string) (IRI, error) {
+	rel, err := iriRefToURL(iri)
+	if err != nil {
+		return IRI{}, err
+	}
+	url := p.baseURI.url.ResolveReference(rel)
+	return IRI{url}, nil
 }
 
 func (p *Parser) parseStatement() (bool, error) {
@@ -172,7 +186,7 @@ func (p *Parser) parsePrefix() error {
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
-	val, err := newIRI(iriRef.Val)
+	val, err := newIRIFromString(iriRef.Val)
 	p.namespaces[key] = val
 	return err
 }
@@ -192,7 +206,7 @@ func (p *Parser) parseBase() error {
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	p.baseURI, err = newIRI(iriRef.Val)
+	p.baseURI, err = newIRIFromString(iriRef.Val)
 	return err
 }
 
@@ -211,7 +225,7 @@ func (p *Parser) parseSPARQLPrefix() error {
 	}
 	// map a new namespace in parser state
 	key := pNameNS.Val[:len(pNameNS.Val)-1]
-	val, err := newIRI(iriRef.Val)
+	val, err := newIRIFromString(iriRef.Val)
 	p.namespaces[key] = val
 	return err
 }
@@ -227,7 +241,7 @@ func (p *Parser) parseSPARQLBase() error {
 	}
 	// TODO: require iriRef to be an absolute (or maybe prefixed?) iri
 	// for now, assume it is an abs iri
-	p.baseURI, err = newIRI(iriRef.Val)
+	p.baseURI, err = newIRIFromString(iriRef.Val)
 	return err
 }
 
@@ -271,7 +285,7 @@ func (p *Parser) parseSubject() error {
 	switch tok.Typ {
 	case tokenIRIRef:
 		p.next()
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolveIRI(tok.Val)
 		p.curSubject = iri
 		return err
 	case tokenPNameLN, tokenPNameNS:
@@ -341,11 +355,11 @@ func (p *Parser) parsePredicate() error {
 	switch tok.Typ {
 	case tokenA:
 		// TODO: remove magic string
-		pred, err := newIRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+		pred, err := newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
 		p.curPredicate = pred
 		return err
 	case tokenIRIRef:
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolveIRI(tok.Val)
 		p.curPredicate = iri
 		return err
 	case tokenPNameLN, tokenPNameNS:
@@ -385,7 +399,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	}
 	bNode := p.newBlankNode("collectionBNode") // TODO: name
 	p.curSubject = bNode
-	p.curPredicate = IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>") // TODO: make this a const or something
+	p.curPredicate, _ = newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>") // TODO: make this a const or something
 	next := p.peek()
 	for next.Typ != tokenEndCollection {
 		err := p.parseObject()
@@ -404,7 +418,9 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 		return BlankNode{}, err
 	}
 	// TODO: use consts
-	p.emitTriple(p.curSubject, IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>"), IRI("<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>"))
+	rdfRest, _ := newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>")
+	rdfNil, _ := newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>")
+	p.emitTriple(p.curSubject, rdfRest, rdfNil)
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
 	return bNode, nil
@@ -417,7 +433,7 @@ func (p *Parser) parseObject() error {
 	switch tok.Typ {
 	case tokenIRIRef:
 		p.next()
-		iri, err := newIRI(tok.Val)
+		iri, err := p.resolveIRI(tok.Val)
 		p.emitTriple(p.curSubject, p.curPredicate, iri)
 		return err
 	case tokenPNameLN, tokenPNameNS:
@@ -496,26 +512,30 @@ func (p *Parser) parseLiteral() (Literal, error) {
 }
 
 func (p *Parser) parseNumericLiteral() (Literal, error) {
+	// TODO: replace these with consts
+	xsdInteger, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#integer>")
+	xsdDecimal, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#decimal>")
+	xsdDouble, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#double>")
 	tok := p.next()
 	switch tok.Typ {
 	case tokenInteger:
 		lit := Literal{
 			tok.Val,
-			IRI("<http://www.w3.org/2001/XMLSchema#integer>"), // TODO: const
+			xsdInteger,
 			"",
 		}
 		return lit, nil
 	case tokenDecimal:
 		lit := Literal{
 			tok.Val,
-			IRI("<http://www.w3.org/2001/XMLSchema#decimal>"), // TODO: const
+			xsdDecimal,
 			"",
 		}
 		return lit, nil
 	case tokenDouble:
 		lit := Literal{
 			tok.Val,
-			IRI("<http://www.w3.org/2001/XMLSchema#double>"), // TODO: const
+			xsdDouble,
 			"",
 		}
 		return lit, nil
@@ -545,7 +565,7 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 		switch tok.Typ {
 		case tokenIRIRef:
 			// TODO: make sure IRI is getting created properly
-			iri, err := newIRI(tok.Val)
+			iri, err := p.resolveIRI(tok.Val)
 			if err != nil {
 				return Literal{}, err
 			}
@@ -564,20 +584,22 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 }
 
 func (p *Parser) parseBooleanLiteral() (Literal, error) {
+	// TODO: make this a const
+	xsdBoolean, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#boolean>")
 	tok := p.next()
 	switch tok.Typ {
 	case tokenTrue:
 		lit := Literal{
 			tok.Val,
-			IRI("<http://www.w3.org/2001/XMLSchema#boolean>"), // TODO: const
+			xsdBoolean,
 			"",
 		}
 		return lit, nil
 	case tokenFalse:
 		lit := Literal{
 			tok.Val,
-			IRI("<http://www.w3.org/2001/XMLSchema#boolean>"), // TODO: const
-			"", // TODO: also note that xsd = <http://www.w3.org/2001/XMLSchema#>
+			xsdBoolean,
+			"",
 		}
 		return lit, nil
 	default:

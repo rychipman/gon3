@@ -1,23 +1,27 @@
 package gon3
 
+import (
+	"net/url"
+)
+
 type RDFTerm interface {
 	// iri, blanknode, literal
 }
 
 // This must be a full (i.e. not relative IRI)
-type IRI string
-
-func newIRI(iri string) (IRI, error) {
-	// TODO: actually implement this
-	// if first char not '<', process as prefixed name
-	// else if relative, resolve according to http://www.w3.org/TR/turtle/#sec-iri-references
-	// finally, remove unicode escape sequences
-	return IRI(iri), nil
+type IRI struct {
+	url *url.URL
 }
 
-func (i IRI) append(s string) IRI {
+func newIRIFromString(s string) (IRI, error) {
+	url, err := iriRefToURL(s)
+	return IRI{url}, err
+}
+
+func iriRefToURL(s string) (*url.URL, error) {
 	// TODO: implement
-	return IRI("")
+	// strip <>, unescape, parse into url
+	panic("unimplemented")
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
