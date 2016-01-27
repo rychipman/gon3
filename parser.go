@@ -281,7 +281,7 @@ func (p *Parser) parseSubject() error {
 		return err
 	case tokenBlankNodeLabel:
 		p.next()
-		label := tok.Val // TODO: parse the label out of token value
+		label := strings.Split(tok.Val, ":")[1]
 		bNode := p.blankNode(label)
 		p.curSubject = bNode
 		return nil
@@ -427,7 +427,7 @@ func (p *Parser) parseObject() error {
 		return err
 	case tokenBlankNodeLabel:
 		p.next()
-		label := tok.Val // TODO: parse the label out of token value
+		label := strings.Split(tok.Val, ":")[1]
 		bNode := p.blankNode(label)
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return nil
