@@ -550,8 +550,7 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 	}
 	switch tok.Typ {
 	case tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
-		// TODO: remove quotes from string and resolve escapes
-		lit.LexicalForm = tok.Val
+		lit.LexicalForm = lexicalForm(tok.Val)
 	default:
 		return Literal{}, fmt.Errorf("Expected a string literal token, got %s", tok)
 	}

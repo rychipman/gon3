@@ -3,6 +3,8 @@ package gon3
 import (
 	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 type RDFTerm interface {
@@ -51,6 +53,64 @@ func (l Literal) String() string {
 		return fmt.Sprintf("%q@%s", l.LexicalForm, l.LanguageTag)
 	}
 	return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
+}
+
+func lexicalForm(s string) string {
+	var unquoted string
+	if strings.HasPrefix(s, `"""`) || strings.HasPrefix(s, `'''`) {
+		unquoted = s[3 : len(s)-3]
+	} else {
+		unquoted = s[1 : len(s)-1]
+	}
+	// TODO: resolve escapes
+	u := unescapeUChar(unquoted)
+	ret := unescapeEChar(u)
+	return ret
+}
+
+func unescapeEChar(s string) string {
+	var replacements = []struct {
+		old string
+		new string
+	}{
+		{`\t`, "\t"},
+		{`\b`, "\b"},
+		{`\n`, "\n"},
+		{`\r`, "\r"},
+		{`\f`, "\f"},
+		{`\"`, `"`},
+		{`\'`, `'`},
+		{`\\`, `\`},
+	}
+	for _, r := range replacements {
+		s = strings.Replace(s, r.old, r.new, -1)
+	}
+	return s
+}
+
+func unescapeUChar(s string) string {
+	for {
+		var start, hex, end string
+		uIdx := strings.Index(s, `\u`)
+		UIdx := strings.Index(s, `\U`)
+		if uIdx >= 0 {
+			start = s[:uIdx]
+			hex = s[uIdx+2 : uIdx+6]
+			end = s[uIdx+6:]
+		} else if UIdx >= 0 {
+			start = s[:UIdx]
+			hex = s[UIdx+2 : uIdx+10]
+			end = s[uIdx+10:]
+		} else {
+			break
+		}
+		num, err := strconv.ParseInt(hex, 16, 32)
+		if err != nil {
+			panic(err) // TODO: this shouldn't happen
+		}
+		s = fmt.Sprintf("%s%s%s", start, rune(num), end)
+	}
+	return s
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple
