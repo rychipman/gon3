@@ -148,10 +148,12 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 		if l.Peek() == '\\' {
 			l.Next()
 			if l.Peek() == 'u' {
+				l.Next()
 				for i := 0; i < 4; i += 1 {
 					matchHex.AssertOne(l, "Expected hex digit while lexing iriref")
 				}
 			} else if l.Peek() == 'U' {
+				l.Next()
 				for i := 0; i < 8; i += 1 {
 					matchHex.AssertOne(l, "Expected hex digit while lexing iriref")
 				}

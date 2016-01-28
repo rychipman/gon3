@@ -111,7 +111,7 @@ func unescapeUChar(s string) string {
 		if err != nil {
 			panic(err) // TODO: this shouldn't happen
 		}
-		s = fmt.Sprintf("%s%s%s", start, rune(num), end)
+		s = fmt.Sprintf("%s%s%s", start, string(rune(num)), end)
 	}
 	return s
 }
