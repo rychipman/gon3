@@ -26,7 +26,7 @@ func newIRIFromString(s string) (IRI, error) {
 func iriRefToURL(s string) (*url.URL, error) {
 	// TODO: implement
 	// strip <>, unescape, parse into url
-	panic("unimplemented")
+	return url.Parse("")
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node

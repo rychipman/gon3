@@ -3,6 +3,7 @@ package gon3
 import (
 	"fmt"
 	"github.com/rychipman/easylex"
+	"net/url"
 	"strings"
 )
 
@@ -21,12 +22,13 @@ type Parser struct {
 }
 
 func NewParser(input string) *Parser {
+	base, _ := url.Parse("") // TODO: properly initialize baseuri
 	// initialize parser
 	p := &Parser{
 		Graph:         []*Triple{},
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
-		baseURI:       IRI{}, // TODO: properly set a baseuri
+		baseURI:       IRI{base},
 		namespaces:    map[string]IRI{},
 		bNodeLabels:   map[string]BlankNode{},
 		lastBlankNode: BlankNode{-1, ""},
