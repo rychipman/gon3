@@ -98,12 +98,22 @@ func unescapeUChar(s string) string {
 		UIdx := strings.Index(s, `\U`)
 		if uIdx >= 0 {
 			start = s[:uIdx]
-			hex = s[uIdx+2 : uIdx+6]
-			end = s[uIdx+6:]
+			if uIdx+6 > len(s) {
+				hex = s[uIdx+2:]
+				end = ""
+			} else {
+				hex = s[uIdx+2 : uIdx+6]
+				end = s[uIdx+6:]
+			}
 		} else if UIdx >= 0 {
 			start = s[:UIdx]
-			hex = s[UIdx+2 : uIdx+10]
-			end = s[uIdx+10:]
+			if UIdx+10 > len(s) {
+				hex = s[UIdx+2:]
+				end = ""
+			} else {
+				hex = s[UIdx+2 : UIdx+10]
+				end = s[UIdx+10:]
+			}
 		} else {
 			break
 		}
