@@ -51,10 +51,10 @@ type Literal struct {
 }
 
 func (l Literal) String() string {
-	if l.LanguageTag == "" {
-		return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
+	if l.LanguageTag != "" {
+		return fmt.Sprintf("%q@%s", l.LexicalForm, l.LanguageTag)
 	}
-	return fmt.Sprintf("%q^^%s@%s", l.LexicalForm, l.DatatypeIRI, l.LanguageTag)
+	return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple

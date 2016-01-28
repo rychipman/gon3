@@ -538,7 +538,12 @@ func (p *Parser) parseNumericLiteral() (Literal, error) {
 
 func (p *Parser) parseRDFLiteral() (Literal, error) {
 	tok := p.next()
-	lit := Literal{}
+	stringDT, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#string>") // TODO: const
+	lit := Literal{
+		LexicalForm: "",
+		DatatypeIRI: stringDT,
+		LanguageTag: "",
+	}
 	switch tok.Typ {
 	case tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
 		// TODO: remove quotes from string and resolve escapes
@@ -548,10 +553,11 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 	}
 	if p.peek().Typ == tokenLangTag {
 		langtag := p.next()
-		// TODO: parse the lang string out of val
-		lit.LanguageTag = langtag.Val
-	}
-	if p.peek().Typ == tokenLiteralDatatypeTag {
+		lit.LanguageTag = langtag.Val[1:]
+		// TODO: make this a const
+		dIRI, _ := newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#langString>")
+		lit.DatatypeIRI = dIRI
+	} else if p.peek().Typ == tokenLiteralDatatypeTag {
 		p.next()
 		tok := p.next()
 		switch tok.Typ {

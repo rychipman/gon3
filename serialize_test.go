@@ -11,7 +11,7 @@ func TestGoodSerialize(t *testing.T) {
 	currentSerializeTests = []string{}
 	currentSerializeTests = goodSerializeTests
 
-	verbosity := 1
+	verbosity := 2
 
 	for _, testName := range currentSerializeTests {
 		testFile := "./tests-out/" + testName + ".ttl"
