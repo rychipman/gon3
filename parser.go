@@ -92,17 +92,21 @@ func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) {
 }
 
 func (p *Parser) blankNode(label string) BlankNode {
-	if node, present := p.bNodeLabels[label]; present {
+	if label == "" {
+		return p.newBlankNode()
+	} else if node, present := p.bNodeLabels[label]; present {
 		return node
 	}
-	newNode := p.newBlankNode(label)
+	newNode := p.newBlankNode()
 	p.bNodeLabels[label] = newNode
 	return newNode
 }
 
-func (p *Parser) newBlankNode(label string) BlankNode {
+func (p *Parser) newBlankNode() BlankNode {
+	id := p.lastBlankNode.Id + 1
+	label := fmt.Sprintf("a%d", id)
 	b := BlankNode{
-		Id:    p.lastBlankNode.Id + 1,
+		Id:    id,
 		Label: label,
 	}
 	p.lastBlankNode = b
@@ -301,7 +305,7 @@ func (p *Parser) parseSubject() error {
 		return nil
 	case tokenAnon:
 		p.next()
-		p.curSubject = p.newBlankNode("anon") // TODO: how should i set this string?
+		p.curSubject = p.blankNode("")
 		return nil
 	case tokenStartCollection:
 		bNode, err := p.parseCollection()
@@ -393,7 +397,7 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	if err != nil {
 		return BlankNode{}, err
 	}
-	bNode := p.newBlankNode("collectionBNode") // TODO: name
+	bNode := p.blankNode("")
 	p.curSubject = bNode
 	p.curPredicate, _ = newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>") // TODO: make this a const or something
 	next := p.peek()
@@ -441,7 +445,7 @@ func (p *Parser) parseObject() error {
 		return nil
 	case tokenAnon:
 		p.next()
-		bNode := p.newBlankNode("anon") // TODO: name
+		bNode := p.blankNode("")
 		p.emitTriple(p.curSubject, p.curPredicate, bNode)
 		return nil
 	case tokenStartCollection:
@@ -469,7 +473,7 @@ func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
 	if err != nil {
 		return BlankNode{}, err
 	}
-	bNode := p.newBlankNode("bnodeproplist") // TODO: name
+	bNode := p.blankNode("bnodeproplist")
 	p.curSubject = bNode
 	err = p.parsePredicateObjectList()
 	if err != nil {

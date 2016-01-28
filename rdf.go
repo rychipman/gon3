@@ -36,11 +36,7 @@ type BlankNode struct {
 }
 
 func (b BlankNode) String() string {
-	label := b.Label
-	if label == "" {
-		label = "anonbnode"
-	}
-	return fmt.Sprintf("_:%s", label)
+	return fmt.Sprintf("_:%s", b.Label)
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-literal
