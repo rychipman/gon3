@@ -87,16 +87,14 @@ func isWhitespace(r rune) bool {
 }
 
 func lexComment(l *easylex.Lexer) easylex.StateFn {
-	easylex.NewMatcher().AcceptRunes("#").MatchOne(l)
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes("#").AssertOne(l, "Expected '#' while lexing comment")
 	easylex.NewMatcher().RejectRunes("\n").MatchRun(l)
 	l.Ignore()
 	return lexDocument
 }
 
 func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
-	easylex.NewMatcher().AcceptRunes("@").MatchOne(l)
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes("@").AssertOne(l, "Expected '@' while lexing AtStatement")
 	if easylex.NewMatcher().AcceptString("prefix").MatchOne(l) {
 		if isWhitespace(l.Peek()) {
 			l.Emit(tokenAtPrefix)
@@ -109,8 +107,7 @@ func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
 			return lexDocument
 		}
 	}
-	matchAlphabet.MatchRun(l)
-	// TODO: assert
+	matchAlphabet.AssertRun(l, "Expected alphabet while lexing AtStatement")
 	for {
 		hyphen := easylex.NewMatcher().AcceptRunes("-").MatchOne(l)
 		alph := matchAlphaNumeric.MatchRun(l)
@@ -126,12 +123,9 @@ func lexAtStatement(l *easylex.Lexer) easylex.StateFn {
 }
 
 func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
-	easylex.NewMatcher().AcceptRunes("_").MatchOne(l)
-	// TODO: assert
-	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
-	// TODO: assert
-	easylex.NewMatcher().Union(matchPNCharsU).Union(matchDigits).MatchOne(l) // TODO: create these matchers
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes("_").AssertOne(l, "Expected '_' while lexing bnode label")
+	easylex.NewMatcher().AcceptRunes(":").AssertOne(l, "Expected ':' while lexing bnode label")
+	easylex.NewMatcher().Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected pncharsu or digit while lexing bnode label")
 	for {
 		period := matchPeriod.MatchRun(l)
 		pnchars := matchPNChars.MatchRun(l)
@@ -147,8 +141,7 @@ func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
 }
 
 func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
-	easylex.NewMatcher().AcceptRunes("<").MatchOne(l)
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes("<").AssertOne(l, "Expected '<' while lexing iriref")
 	iriChars := easylex.NewMatcher().RejectRunes("<>\"{}|^`\\\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u0020")
 	for {
 		m1 := iriChars.MatchRun(l)
@@ -156,13 +149,11 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 			l.Next()
 			if l.Peek() == 'u' {
 				for i := 0; i < 4; i += 1 {
-					matchHex.MatchOne(l)
-					// TODO: assert
+					matchHex.AssertOne(l, "Expected hex digit while lexing iriref")
 				}
 			} else if l.Peek() == 'U' {
 				for i := 0; i < 8; i += 1 {
-					matchHex.MatchOne(l)
-					// TODO: assert
+					matchHex.AssertOne(l, "Expected hex digit while lexing iriref")
 				}
 			} else {
 				// TODO: error
@@ -171,8 +162,7 @@ func lexIRIRef(l *easylex.Lexer) easylex.StateFn {
 			break
 		}
 	}
-	easylex.NewMatcher().AcceptRunes(">").MatchOne(l)
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes(">").AssertOne(l, "Expected '>' while lexing iriref")
 	l.Emit(tokenIRIRef)
 	return lexDocument
 }
@@ -194,14 +184,12 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				case 'u':
 					l.Next()
 					for i := 0; i < 4; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 'U':
 					l.Next()
 					for i := 0; i < 8; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
 					l.Next()
@@ -232,14 +220,12 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				case 'u':
 					l.Next()
 					for i := 0; i < 4; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 'U':
 					l.Next()
 					for i := 0; i < 8; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
 					l.Next()
@@ -264,14 +250,12 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				case 'u':
 					l.Next()
 					for i := 0; i < 4; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 'U':
 					l.Next()
 					for i := 0; i < 8; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
 					l.Next()
@@ -282,8 +266,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				break
 			}
 		}
-		matchQuote.MatchOne(l)
-		// TODO: assert
+		matchQuote.AssertOne(l, "Expected '\"' while lexing RDF Literal")
 		l.Emit(tokenStringLiteralQuote)
 		return lexDocument
 	}
@@ -297,14 +280,12 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				case 'u':
 					l.Next()
 					for i := 0; i < 4; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 'U':
 					l.Next()
 					for i := 0; i < 8; i += 1 {
-						matchHex.MatchOne(l)
-						// TODO: assert
+						matchHex.AssertOne(l, "Expected hex digit while lexing RDF Literal")
 					}
 				case 't', 'b', 'n', 'r', 'f', '"', '\'', '\\':
 					l.Next()
@@ -315,8 +296,7 @@ func lexRDFLiteral(l *easylex.Lexer) easylex.StateFn {
 				break
 			}
 		}
-		matchSingleQuote.MatchOne(l)
-		// TODO: assert
+		matchSingleQuote.AssertOne(l, "Expected \"'\" while lexing RDF Literal")
 		l.Emit(tokenStringLiteralSingleQuote)
 		return lexDocument
 	}
@@ -328,8 +308,7 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 	if matchDigits.MatchRun(l) {
 		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchDigits.MatchRun(l)
-			// TODO: assert
+			matchDigits.AssertRun(l, "Expected digits while lexing numeric literal")
 			l.Emit(tokenDouble)
 			return lexDocument
 		} else if matchPeriod.MatchOne(l) {
@@ -339,11 +318,9 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 					return lexDocument
 				}
 			}
-			easylex.NewMatcher().AcceptRunes("eE").MatchOne(l)
-			// TODO: assert
+			easylex.NewMatcher().AcceptRunes("eE").AssertOne(l, "Expected 'e' or 'E' while lexing numeric literal")
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchDigits.MatchRun(l)
-			// TODO: assert
+			matchDigits.AssertRun(l, "Expected digits while lexing numeric literal")
 			l.Emit(tokenDouble)
 			return lexDocument
 		} else {
@@ -351,14 +328,11 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 			return lexDocument
 		}
 	} else {
-		matchPeriod.MatchOne(l)
-		// TODO: assert
-		matchDigits.MatchRun(l)
-		// TODO: assert
+		matchPeriod.AssertOne(l, "Expected '.' while lexing numeric literal")
+		matchDigits.AssertRun(l, "Expected digits while lexing numeric literal")
 		if easylex.NewMatcher().AcceptRunes("eE").MatchOne(l) {
 			easylex.NewMatcher().AcceptRunes("+-").MatchOne(l)
-			matchDigits.MatchRun(l)
-			// TODO: assert
+			matchDigits.AssertRun(l, "Expected digits while lexing numeric literal")
 			l.Emit(tokenDouble)
 			return lexDocument
 		}
@@ -402,8 +376,7 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 			break
 		}
 	}
-	easylex.NewMatcher().AcceptRunes(":").MatchOne(l)
-	// TODO: assert
+	easylex.NewMatcher().AcceptRunes(":").AssertOne(l, "Expected ':' while lexing pname")
 	if l.Peek() == '<' || isWhitespace(l.Peek()) {
 		l.Emit(tokenPNameNS)
 		return lexDocument
@@ -411,32 +384,25 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 	// accept PN_LOCAL
 	if l.Peek() == '\\' {
 		l.Next()
-		matchEscapable.MatchOne(l)
-		// TODO: assert
+		matchEscapable.AssertOne(l, "Expected escapable while lexing pname")
 	} else if l.Peek() == '%' {
 		l.Next()
-		matchHex.MatchOne(l)
-		// TODO: assert
-		matchHex.MatchOne(l)
-		// TODO: assert
+		matchHex.AssertOne(l, "Expected hex digit while lexing pname")
+		matchHex.AssertOne(l, "Expected hex digit while lexing pname")
 	} else {
-		easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).MatchOne(l)
-		// TODO: assert
+		easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected ':', pncharsu, or digits while lexing pname")
 	}
 	for {
 		period := matchPeriod.MatchRun(l)
 		other := false
 		if l.Peek() == '\\' {
 			l.Next()
-			matchEscapable.MatchOne(l)
-			// TODO: assert
+			matchEscapable.AssertOne(l, "Expected escapable while lexing pname")
 			other = true
 		} else if l.Peek() == '%' {
 			l.Next()
-			matchHex.MatchOne(l)
-			// TODO: assert
-			matchHex.MatchOne(l)
-			// TODO: assert
+			matchHex.AssertOne(l, "Expected hex digit while lexing pname")
+			matchHex.AssertOne(l, "Expected hex digit while lexing pname")
 			other = true
 		} else if l.Peek() == ':' {
 			l.Next()
