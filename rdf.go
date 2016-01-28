@@ -26,9 +26,12 @@ func newIRIFromString(s string) (IRI, error) {
 }
 
 func iriRefToURL(s string) (*url.URL, error) {
-	// TODO: implement
 	// strip <>, unescape, parse into url
-	return url.Parse("")
+	if strings.HasPrefix(s, "<") {
+		s = s[1 : len(s)-1]
+	}
+	unescaped := unescapeUChar(s)
+	return url.Parse(unescaped)
 }
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node
