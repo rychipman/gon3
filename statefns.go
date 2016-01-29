@@ -126,7 +126,7 @@ func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("_").AssertOne(l, "Expected '_' while lexing bnode label")
 	easylex.NewMatcher().AcceptRunes(":").AssertOne(l, "Expected ':' while lexing bnode label")
 	easylex.NewMatcher().Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected pncharsu or digit while lexing bnode label")
-	easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".").MatchLookAheadRun(l, matchPNChars)
+	easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".").MatchLookAheadRun(l, easylex.NewMatcher().Union(matchPNChars).AcceptRunes("."))
 	matchPNChars.MatchRun(l)
 	l.Emit(tokenBlankNodeLabel)
 	return lexDocument
@@ -305,7 +305,7 @@ func lexNumericLiteral(l *easylex.Lexer) easylex.StateFn {
 			matchDigits.AssertRun(l, "Expected digits while lexing numeric literal")
 			l.Emit(tokenDouble)
 			return lexDocument
-		} else if matchPeriod.MatchOne(l) {
+		} else if matchPeriod.MatchLookAhead(l, easylex.NewMatcher().AcceptRunes("0123456789eE")) {
 			if matchDigits.MatchRun(l) {
 				if isWhitespace(l.Peek()) {
 					l.Emit(tokenDecimal)
@@ -389,7 +389,7 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 		easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected ':', pncharsu, or digits while lexing pname")
 	}
 	for {
-		m := easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".:").MatchLookAheadRun(l, easylex.NewMatcher().Union(matchPNChars).AcceptRunes(`:\%`))
+		m := easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".:").MatchLookAheadRun(l, easylex.NewMatcher().Union(matchPNChars).AcceptRunes(`.:\%`))
 		for {
 			switch l.Peek() {
 			case '\\':

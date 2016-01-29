@@ -6,15 +6,15 @@ import (
 	"testing"
 )
 
-func TestParserAndLexer(t *testing.T) {
+func TestTurtle(t *testing.T) {
 
 	currentParserTests = []string{}
 	currentParserTests = positiveParserTests
 
-	verbosity := 1
+	verbosity := 2
 
 	for _, testName := range currentParserTests {
-		testFile := "./tests/turtle/parse/" + testName
+		testFile := "./tests/turtle/" + testName
 		b, err := ioutil.ReadFile(testFile)
 		if err != nil {
 			t.Fatalf("Error reading test file %s", testFile)
@@ -67,19 +67,17 @@ var positiveParserTests []string = []string{
 	"turtle-syntax-lists-04.ttl",
 	"turtle-syntax-lists-05.ttl",
 	"turtle-syntax-ln-colons.ttl",
-	// TODO: allow tokenEndTriples to be attached to other token
-	//"turtle-syntax-ln-dots.ttl",
+	"turtle-syntax-ln-dots.ttl",
 	"turtle-syntax-ns-dots.ttl",
 	"turtle-syntax-number-01.ttl",
 	"turtle-syntax-number-02.ttl",
 	"turtle-syntax-number-03.ttl",
 	"turtle-syntax-number-04.ttl",
-	// TODO; differentiate . from decimal point
+	// TODO; differentiate . from leading decimal point
 	//"turtle-syntax-number-05.ttl",
 	"turtle-syntax-number-06.ttl",
 	"turtle-syntax-number-07.ttl",
-	// TODO: differentiate trailing decimal point from end triples
-	//"turtle-syntax-number-08.ttl",
+	"turtle-syntax-number-08.ttl",
 	"turtle-syntax-number-09.ttl",
 	"turtle-syntax-number-10.ttl",
 	"turtle-syntax-number-11.ttl",
