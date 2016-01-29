@@ -146,8 +146,7 @@ var positiveParserTests []string = []string{
 	"labeled_blank_node_with_leading_digit.ttl",
 	"labeled_blank_node_with_leading_underscore.ttl",
 	"labeled_blank_node_with_non_leading_extras.ttl",
-	// TODO: not properly matching some unicode chars
-	//"labeled_blank_node_with_PN_CHARS_BASE_character_boundaries.ttl",
+	"labeled_blank_node_with_PN_CHARS_BASE_character_boundaries.ttl",
 	"langtagged_LONG.ttl",
 	"langtagged_LONG_with_subtag.ttl",
 	"langtagged_non_LONG.ttl",
@@ -188,14 +187,12 @@ var positiveParserTests []string = []string{
 	"literal_with_numeric_escape4.ttl",
 	"literal_with_numeric_escape8.ttl",
 	"literal_with_REVERSE_SOLIDUS.ttl",
-	// TODO: not properly matching some unicode chars
-	// "localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.ttl",
-	// "localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.ttl",
+	"localName_with_assigned_nfc_bmp_PN_CHARS_BASE_character_boundaries.ttl",
+	"localName_with_assigned_nfc_PN_CHARS_BASE_character_boundaries.ttl",
 	"localname_with_COLON.ttl",
 	"localName_with_leading_digit.ttl",
 	"localName_with_leading_underscore.ttl",
-	// TODO: not properly matching some unicode chars
-	// "localName_with_nfc_PN_CHARS_BASE_character_boundaries.ttl",
+	"localName_with_nfc_PN_CHARS_BASE_character_boundaries.ttl",
 	"localName_with_non_leading_extras.ttl",
 	//"manifest.ttl",
 	"negative_numeric.ttl",
@@ -216,8 +213,7 @@ var positiveParserTests []string = []string{
 	"prefix_only_IRI.ttl",
 	"prefix_reassigned_and_used.ttl",
 	"prefix_with_non_leading_extras.ttl",
-	// TODO: not properly matching some unicode chars
-	// "prefix_with_PN_CHARS_BASE_character_boundaries.ttl",
+	"prefix_with_PN_CHARS_BASE_character_boundaries.ttl",
 	"repeated_semis_at_end.ttl",
 	"repeated_semis_not_at_end.ttl",
 	"reserved_escaped_localName.ttl",
