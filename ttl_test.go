@@ -194,6 +194,7 @@ var positiveParserTests []string = []string{
 	"localName_with_leading_underscore.ttl",
 	"localName_with_nfc_PN_CHARS_BASE_character_boundaries.ttl",
 	"localName_with_non_leading_extras.ttl",
+	// TODO: proper unescaping
 	//"manifest.ttl",
 	"negative_numeric.ttl",
 	"nested_blankNodePropertyLists.ttl",
