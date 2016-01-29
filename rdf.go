@@ -150,8 +150,3 @@ func (g Graph) String() string {
 	}
 	return str
 }
-
-// algorithm: http://www.hpl.hp.com/techreports/2001/HPL-2001-293.pdf
-func isomorphic(f, g Graph) bool {
-	panic("unimplemented")
-}
