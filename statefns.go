@@ -126,16 +126,8 @@ func lexBlankNodeLabel(l *easylex.Lexer) easylex.StateFn {
 	easylex.NewMatcher().AcceptRunes("_").AssertOne(l, "Expected '_' while lexing bnode label")
 	easylex.NewMatcher().AcceptRunes(":").AssertOne(l, "Expected ':' while lexing bnode label")
 	easylex.NewMatcher().Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected pncharsu or digit while lexing bnode label")
-	for {
-		period := matchPeriod.MatchRun(l)
-		pnchars := matchPNChars.MatchRun(l)
-		if !pnchars {
-			if period {
-				// TODO: error
-			}
-			break
-		}
-	}
+	easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".").MatchLookAheadRun(l, matchPNChars)
+	matchPNChars.MatchRun(l)
 	l.Emit(tokenBlankNodeLabel)
 	return lexDocument
 }
@@ -397,30 +389,26 @@ func lexPName(l *easylex.Lexer) easylex.StateFn {
 		easylex.NewMatcher().AcceptRunes(":").Union(matchPNCharsU).Union(matchDigits).AssertOne(l, "Expected ':', pncharsu, or digits while lexing pname")
 	}
 	for {
-		period := matchPeriod.MatchRun(l)
-		other := false
-		if l.Peek() == '\\' {
-			l.Next()
-			matchEscapable.AssertOne(l, "Expected escapable while lexing pname")
-			other = true
-		} else if l.Peek() == '%' {
-			l.Next()
-			matchHex.AssertOne(l, "Expected hex digit while lexing pname")
-			matchHex.AssertOne(l, "Expected hex digit while lexing pname")
-			other = true
-		} else if l.Peek() == ':' {
-			l.Next()
-			other = true
-		} else {
-			other = matchPNChars.MatchRun(l)
-		}
-		if !other {
-			if period {
-				// TODO: error
+		m := easylex.NewMatcher().Union(matchPNChars).AcceptRunes(".:").MatchLookAheadRun(l, easylex.NewMatcher().Union(matchPNChars).AcceptRunes(`:\%`))
+		for {
+			switch l.Peek() {
+			case '\\':
+				l.Next()
+				matchEscapable.AssertOne(l, "Expected escapable while lexing pname")
+				continue
+			case '%':
+				l.Next()
+				matchHex.AssertOne(l, "Expected hex digit while lexing pname")
+				matchHex.AssertOne(l, "Expected hex digit while lexing pname")
+				continue
 			}
 			break
 		}
+		if !m {
+			break
+		}
 	}
+	easylex.NewMatcher().Union(matchPNChars).AcceptRunes(":").MatchRun(l)
 	l.Emit(tokenPNameLN)
 	return lexDocument
 }
