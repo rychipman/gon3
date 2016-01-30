@@ -20,6 +20,10 @@ func (i IRI) String() string {
 	return fmt.Sprintf("<%s>", i.url)
 }
 
+func (i IRI) Equals(other IRI) bool {
+	return i.String() == other.String()
+}
+
 func newIRIFromString(s string) (IRI, error) {
 	url, err := iriRefToURL(s)
 	return IRI{url}, err
@@ -56,6 +60,10 @@ func (l Literal) String() string {
 		return fmt.Sprintf("%q@%s", l.LexicalForm, l.LanguageTag)
 	}
 	return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
+}
+
+func (l Literal) Equals(other Literal) bool {
+	return l.LexicalForm == other.LexicalForm && l.DatatypeIRI.Equals(other.DatatypeIRI) && l.LanguageTag == other.LanguageTag
 }
 
 func lexicalForm(s string) string {
