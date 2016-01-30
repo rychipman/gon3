@@ -7,8 +7,10 @@ import (
 	"strings"
 )
 
-type RDFTerm interface {
-	// iri, blanknode, literal
+type Term interface {
+	String() string
+	RawValue() string
+	Equal(Term) bool
 }
 
 // This must be a full (i.e. not relative IRI)
