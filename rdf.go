@@ -9,7 +9,6 @@ import (
 
 type Term interface {
 	String() string
-	RawValue() string
 	Equals(Term) bool
 }
 
@@ -22,7 +21,13 @@ func (i IRI) String() string {
 	return fmt.Sprintf("<%s>", i.url)
 }
 
-func (i IRI) Equals(other IRI) bool {
+func (i IRI) Equals(other Term) bool {
+	switch other.(type) {
+	case IRI:
+		break
+	default:
+		return false
+	}
 	return i.String() == other.String()
 }
 
@@ -50,6 +55,18 @@ func (b BlankNode) String() string {
 	return fmt.Sprintf("_:%s", b.Label)
 }
 
+func (b BlankNode) Equals(other Term) bool {
+	panic("unimplemented")
+}
+
+func isBlankNode(t Term) bool {
+	switch t.(type) {
+	case BlankNode:
+		return true
+	}
+	return false
+}
+
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-literal
 type Literal struct {
 	LexicalForm string
@@ -64,8 +81,15 @@ func (l Literal) String() string {
 	return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
 }
 
-func (l Literal) Equals(other Literal) bool {
-	return l.LexicalForm == other.LexicalForm && l.DatatypeIRI.Equals(other.DatatypeIRI) && l.LanguageTag == other.LanguageTag
+func (l Literal) Equals(other Term) bool {
+	switch other.(type) {
+	case Literal:
+		break
+	default:
+		return false
+	}
+	otherLit := other.(Literal)
+	return l.LexicalForm == otherLit.LexicalForm && l.DatatypeIRI.Equals(otherLit.DatatypeIRI) && l.LanguageTag == otherLit.LanguageTag
 }
 
 func lexicalForm(s string) string {
@@ -138,25 +162,49 @@ func unescapeUChar(s string) string {
 
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple
 type Triple struct {
-	Subject   RDFTerm // cannot be a literal
-	Predicate IRI
-	Object    RDFTerm
+	Subject, Predicate, Object Term
 }
 
 func (t *Triple) String() string {
 	return fmt.Sprintf("%s %s %s .", t.Subject, t.Predicate, t.Object)
 }
 
+func (t *Triple) includes(term Term) bool {
+	for node := range t.IterNodes() {
+		if node.Equals(term) {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *Triple) IterNodes() <-chan Term {
+	panic("unimplemented")
+}
+
 // An RDF graph is a set of RDF triples
-type Graph []*Triple
+type Graph struct {
+	triples []*Triple
+	uri     IRI
+}
 
 func (g Graph) String() string {
 	str := ""
-	for i, t := range g {
+	i := -1
+	for t := range g.IterTriples() {
+		i += 1
 		if i > 0 {
 			str += "\n"
 		}
 		str = fmt.Sprintf("%s%s", str, t)
 	}
 	return str
+}
+
+func (g Graph) IterNodes() <-chan Term {
+	panic("unimplemented")
+}
+
+func (g Graph) IterTriples() <-chan *Triple {
+	panic("unimplemented")
 }

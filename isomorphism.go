@@ -28,9 +28,9 @@ func Isomorphic(g1, g2 Graph) bool {
 
 	// map nodes in g1 to nodes in g2
 	bijection := map[Term]Term{}
-	for { // for each node in g1
+	for node := range g1.IterNodes() {
 		for other, hash := range ungrounded2 {
-			nodeHash := ungrounded1[node]
+			nodeHash := ungrounded1[node.(BlankNode)]
 			if nodeHash == hash {
 				bijection[node] = other
 				delete(ungrounded2, other)
@@ -41,6 +41,7 @@ func Isomorphic(g1, g2 Graph) bool {
 
 	// if all nodes accounted for on both sides, we have a bijection
 
+	panic("unimplemented")
 }
 
 func hashNodes(g Graph, nodes []BlankNode, hashes map[Term]string) (grounded map[Term]string, ungrounded map[BlankNode]string) {
@@ -51,9 +52,9 @@ func hashNodes(g Graph, nodes []BlankNode, hashes map[Term]string) (grounded map
 	ungrounded = map[BlankNode]string{}
 	for {
 		isUniqueHash := map[string]bool{}
-		numGrounded = len(grounded)
+		numGrounded := len(grounded)
 		// mark as many nodes as possible as grounded
-		for node := range nodes {
+		for _, node := range nodes {
 			if _, present := grounded[node]; !present {
 				isGrounded, hash := nodeHash(node, g, grounded)
 				if isGrounded {
@@ -78,12 +79,13 @@ func hashNodes(g Graph, nodes []BlankNode, hashes map[Term]string) (grounded map
 			break
 		}
 	}
+	return
 }
 
 func nodeHash(node BlankNode, g Graph, hashes map[Term]string) (bool, string) {
 	tripleSignatures := []string{}
 	grounded := true
-	for _, trip := range g {
+	for trip := range g.IterTriples() {
 		if trip.includes(node) {
 			tripleSignatures = append(tripleSignatures, hashString(trip, hashes, node))
 			for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
@@ -94,9 +96,10 @@ func nodeHash(node BlankNode, g Graph, hashes map[Term]string) (bool, string) {
 			}
 		}
 	}
-	tripleSignatures.Sort()
-	hash := sha1.Sum(fmt.Sprintf("%v", tripleSignatures))
-	return grounded, string(hash)
+	trips := sort.StringSlice(tripleSignatures)
+	trips.Sort()
+	hash := sha1.Sum([]byte(fmt.Sprintf("%v", trips)))
+	return grounded, string(hash[:])
 }
 
 func hashString(trip *Triple, hashes map[Term]string, node BlankNode) string {
@@ -108,7 +111,7 @@ func hashString(trip *Triple, hashes map[Term]string, node BlankNode) string {
 			str += "itself"
 		case grounded:
 			str += hash
-		case node.(type) == BlankNode:
+		case isBlankNode(node):
 			str += "a blank node"
 		default:
 			str += node.String()
@@ -118,11 +121,11 @@ func hashString(trip *Triple, hashes map[Term]string, node BlankNode) string {
 }
 
 func bNodesIn(g Graph) []BlankNode {
-	bNodes = []BlankNode{}
-	for _, trip := range g {
+	bNodes := []BlankNode{}
+	for trip := range g.IterTriples() {
 		for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
-			if term.(type) == BlankNode {
-				bNodes = append(bNodes, term)
+			if isBlankNode(term) {
+				bNodes = append(bNodes, term.(BlankNode))
 			}
 		}
 	}

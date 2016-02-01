@@ -17,15 +17,15 @@ type Parser struct {
 	namespaces    map[string]IRI
 	bNodeLabels   map[string]BlankNode
 	lastBlankNode BlankNode
-	curSubject    RDFTerm
-	curPredicate  IRI
+	curSubject    Term
+	curPredicate  Term
 }
 
 func NewParser(input string) *Parser {
 	base, _ := url.Parse("") // TODO: properly initialize baseuri
 	// initialize parser
 	p := &Parser{
-		Graph:         []*Triple{},
+		Graph:         Graph{}, // TODO: initialize
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
 		baseURI:       IRI{base},
@@ -82,13 +82,13 @@ func (p *Parser) expect(typ easylex.TokenType) (easylex.Token, error) {
 	return tok, nil
 }
 
-func (p *Parser) emitTriple(subj RDFTerm, pred IRI, obj RDFTerm) {
+func (p *Parser) emitTriple(subj, pred, obj Term) {
 	trip := &Triple{
 		Subject:   subj,
 		Predicate: pred,
 		Object:    obj,
 	}
-	p.Graph = append(p.Graph, trip)
+	p.Graph.triples = append(p.Graph.triples, trip)
 }
 
 func (p *Parser) blankNode(label string) BlankNode {
