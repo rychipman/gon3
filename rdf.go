@@ -10,7 +10,7 @@ import (
 type Term interface {
 	String() string
 	RawValue() string
-	Equal(Term) bool
+	Equals(Term) bool
 }
 
 // This must be a full (i.e. not relative IRI)
