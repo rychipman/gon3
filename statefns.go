@@ -26,6 +26,11 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		return lexIRIRef
 	case '"', '\'':
 		return lexRDFLiteral
+	case '.':
+		if matchBareDecimalStart.Peek(l) {
+			return lexNumericLiteral
+		}
+		return lexPunctuation
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// TODO: handle decimal vs period
 		return lexNumericLiteral
@@ -39,7 +44,7 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		}
 		l.Emit(tokenStartBlankNodePropertyList)
 		return lexDocument
-	case '^', ']', '(', ')', ';', ',', '.':
+	case '^', ']', '(', ')', ';', ',':
 		return lexPunctuation
 	case 't', 'f', 'a', 'b', 'B', 'p', 'P':
 		if matchTrue.MatchOne(l) {

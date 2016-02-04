@@ -73,8 +73,7 @@ var positiveParserTests []string = []string{
 	"turtle-syntax-number-02.ttl",
 	"turtle-syntax-number-03.ttl",
 	"turtle-syntax-number-04.ttl",
-	// TODO; differentiate . from leading decimal point
-	//"turtle-syntax-number-05.ttl",
+	"turtle-syntax-number-05.ttl",
 	"turtle-syntax-number-06.ttl",
 	"turtle-syntax-number-07.ttl",
 	"turtle-syntax-number-08.ttl",
