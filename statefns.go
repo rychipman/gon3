@@ -32,7 +32,6 @@ func lexDocument(l *easylex.Lexer) easylex.StateFn {
 		}
 		return lexPunctuation
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		// TODO: handle decimal vs period
 		return lexNumericLiteral
 	case '[':
 		// anon

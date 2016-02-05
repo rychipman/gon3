@@ -84,7 +84,7 @@ var positiveParserTests []string = []string{
 	"turtle-syntax-pname-esc-02.ttl",
 	"turtle-syntax-pname-esc-03.ttl",
 	"turtle-syntax-prefix-01.ttl",
-	// TODO: allow any combination of cases on SPARQL-style prefix
+	// this library will NOT allow mixed-case prefix declarations
 	//"turtle-syntax-prefix-02.ttl",
 	"turtle-syntax-prefix-03.ttl",
 	"turtle-syntax-prefix-04.ttl",

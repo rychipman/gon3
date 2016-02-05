@@ -99,7 +99,6 @@ func lexicalForm(s string) string {
 	} else {
 		unquoted = s[1 : len(s)-1]
 	}
-	// TODO: resolve escapes
 	u := unescapeUChar(unquoted)
 	ret := unescapeEChar(u)
 	return ret

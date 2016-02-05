@@ -18,7 +18,7 @@ const (
 	tokenEndBlankNodePropertyList
 	tokenStartCollection // 10
 	tokenEndCollection
-	tokenLiteralDatatypeTag // TODO: rename
+	tokenLiteralDatatypeTag
 	tokenTrue
 	tokenFalse
 
