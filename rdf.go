@@ -191,7 +191,12 @@ func (t *Triple) includes(term Term) bool {
 }
 
 func (t *Triple) IterNodes() <-chan Term {
-	panic("unimplemented")
+	ch := make(chan Term, 3)
+	ch <- t.Subject
+	ch <- t.Predicate
+	ch <- t.Object
+	close(ch)
+	return ch
 }
 
 // An RDF graph is a set of RDF triples
@@ -214,9 +219,25 @@ func (g Graph) String() string {
 }
 
 func (g Graph) IterNodes() <-chan Term {
-	panic("unimplemented")
+	ch := make(chan Term)
+	go func() {
+		for trip := range g.IterTriples() {
+			for term := range trip.IterNodes() {
+				ch <- term
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 func (g Graph) IterTriples() <-chan *Triple {
-	panic("unimplemented")
+	ch := make(chan *Triple)
+	go func() {
+		for _, trip := range g.triples {
+			ch <- trip
+		}
+		close(ch)
+	}()
+	return ch
 }
