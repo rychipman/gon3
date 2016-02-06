@@ -6,14 +6,11 @@ import (
 	"testing"
 )
 
-func TestTurtle(t *testing.T) {
-
-	currentParserTests = []string{}
-	currentParserTests = positiveParserTests
+func TestTurtlePositive(t *testing.T) {
 
 	verbosity := 2
 
-	for _, testName := range currentParserTests {
+	for _, testName := range positiveParserTests {
 		testFile := "./tests/turtle/" + testName
 		b, err := ioutil.ReadFile(testFile)
 		if err != nil {
@@ -36,7 +33,120 @@ func TestTurtle(t *testing.T) {
 	}
 }
 
-var currentParserTests []string
+func TestTurtleNegative(t *testing.T) {
+	verbosity := 1
+	for _, testName := range negativeParserTests {
+		testFile := "./tests/turtle/" + testName
+		b, err := ioutil.ReadFile(testFile)
+		if err != nil {
+			t.Fatalf("Error reading test file %s", testFile)
+		}
+		if verbosity > 0 {
+			fmt.Printf("\nStarting test %s\n", testName)
+		}
+		p := NewParser(string(b))
+		_, err = p.Parse()
+		if err == nil {
+			t.Fatalf("Test %s failed: %s", testName, err)
+		}
+		if verbosity > 0 {
+			fmt.Printf("Test %s passed.\n", testName)
+		}
+	}
+}
+
+var negativeParserTests []string = []string{
+	// TODO: unicode escaped chars must conform to rules
+	//"turtle-eval-bad-01.ttl",
+	//"turtle-eval-bad-02.ttl",
+	//"turtle-eval-bad-03.ttl",
+	"turtle-eval-bad-04.ttl",
+	"turtle-syntax-bad-base-01.ttl",
+	"turtle-syntax-bad-base-02.ttl",
+	"turtle-syntax-bad-base-03.ttl",
+	"turtle-syntax-bad-blank-label-dot-end.ttl",
+	// TODO: not failing bad string escapes
+	//"turtle-syntax-bad-esc-01.ttl",
+	// TODO: causing deadlock
+	//"turtle-syntax-bad-esc-02.ttl",
+	//"turtle-syntax-bad-esc-03.ttl",
+	//"turtle-syntax-bad-esc-04.ttl",
+	"turtle-syntax-bad-kw-01.ttl",
+	"turtle-syntax-bad-kw-02.ttl",
+	"turtle-syntax-bad-kw-03.ttl",
+	"turtle-syntax-bad-kw-04.ttl",
+	"turtle-syntax-bad-kw-05.ttl",
+	"turtle-syntax-bad-lang-01.ttl",
+	"turtle-syntax-bad-LITERAL2_with_langtag_and_datatype.ttl",
+	"turtle-syntax-bad-ln-dash-start.ttl",
+	"turtle-syntax-bad-ln-escape-start.ttl",
+	"turtle-syntax-bad-ln-escape.ttl",
+	"turtle-syntax-bad-missing-ns-dot-end.ttl",
+	"turtle-syntax-bad-missing-ns-dot-start.ttl",
+	"turtle-syntax-bad-n3-extras-01.ttl",
+	"turtle-syntax-bad-n3-extras-02.ttl",
+	"turtle-syntax-bad-n3-extras-03.ttl",
+	// TODO: hangs
+	//"turtle-syntax-bad-n3-extras-04.ttl",
+	"turtle-syntax-bad-n3-extras-05.ttl",
+	"turtle-syntax-bad-n3-extras-06.ttl",
+	"turtle-syntax-bad-n3-extras-07.ttl",
+	"turtle-syntax-bad-n3-extras-08.ttl",
+	"turtle-syntax-bad-n3-extras-09.ttl",
+	"turtle-syntax-bad-n3-extras-10.ttl",
+	"turtle-syntax-bad-n3-extras-11.ttl",
+	"turtle-syntax-bad-n3-extras-12.ttl",
+	"turtle-syntax-bad-n3-extras-13.ttl",
+	"turtle-syntax-bad-ns-dot-end.ttl",
+	"turtle-syntax-bad-ns-dot-start.ttl",
+	"turtle-syntax-bad-num-01.ttl",
+	"turtle-syntax-bad-num-02.ttl",
+	"turtle-syntax-bad-num-03.ttl",
+	"turtle-syntax-bad-num-04.ttl",
+	"turtle-syntax-bad-num-05.ttl",
+	"turtle-syntax-bad-number-dot-in-anon.ttl",
+	"turtle-syntax-bad-pname-01.ttl",
+	"turtle-syntax-bad-pname-02.ttl",
+	"turtle-syntax-bad-pname-03.ttl",
+	"turtle-syntax-bad-prefix-01.ttl",
+	"turtle-syntax-bad-prefix-02.ttl",
+	"turtle-syntax-bad-prefix-03.ttl",
+	"turtle-syntax-bad-prefix-04.ttl",
+	"turtle-syntax-bad-prefix-05.ttl",
+	"turtle-syntax-bad-string-01.ttl",
+	"turtle-syntax-bad-string-02.ttl",
+	// TODO: hangs
+	//"turtle-syntax-bad-string-03.ttl",
+	//"turtle-syntax-bad-string-04.ttl",
+	//"turtle-syntax-bad-string-05.ttl",
+	"turtle-syntax-bad-string-06.ttl",
+	"turtle-syntax-bad-string-07.ttl",
+	"turtle-syntax-bad-struct-01.ttl",
+	"turtle-syntax-bad-struct-02.ttl",
+	"turtle-syntax-bad-struct-03.ttl",
+	"turtle-syntax-bad-struct-04.ttl",
+	"turtle-syntax-bad-struct-05.ttl",
+	"turtle-syntax-bad-struct-06.ttl",
+	"turtle-syntax-bad-struct-07.ttl",
+	"turtle-syntax-bad-struct-08.ttl",
+	"turtle-syntax-bad-struct-09.ttl",
+	"turtle-syntax-bad-struct-10.ttl",
+	"turtle-syntax-bad-struct-11.ttl",
+	"turtle-syntax-bad-struct-12.ttl",
+	"turtle-syntax-bad-struct-13.ttl",
+	"turtle-syntax-bad-struct-14.ttl",
+	"turtle-syntax-bad-struct-15.ttl",
+	"turtle-syntax-bad-struct-16.ttl",
+	"turtle-syntax-bad-struct-17.ttl",
+	"turtle-syntax-bad-uri-01.ttl",
+	"turtle-syntax-bad-uri-02.ttl",
+	// TODO: causes deadlock
+	//"turtle-syntax-bad-uri-03.ttl",
+	// TODO: char escapes not allowed in uri
+	//"turtle-syntax-bad-uri-04.ttl",
+	//"turtle-syntax-bad-uri-05.ttl",
+}
+
 var positiveParserTests []string = []string{
 	"turtle-syntax-base-01.ttl",
 	"turtle-syntax-base-02.ttl",
