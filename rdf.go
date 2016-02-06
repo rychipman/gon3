@@ -10,6 +10,7 @@ import (
 type Term interface {
 	String() string
 	Equals(Term) bool
+	RawValue() string
 }
 
 // This must be a full (i.e. not relative IRI)
@@ -29,6 +30,10 @@ func (i IRI) Equals(other Term) bool {
 		return false
 	}
 	return i.String() == other.String()
+}
+
+func (i IRI) RawValue() string {
+	return fmt.Sprintf("%s", i.url)
 }
 
 func newIRIFromString(s string) (IRI, error) {
@@ -57,6 +62,10 @@ func (b BlankNode) String() string {
 
 func (b BlankNode) Equals(other Term) bool {
 	panic("unimplemented")
+}
+
+func (b BlankNode) RawValue() string {
+	return b.Label
 }
 
 func isBlankNode(t Term) bool {
@@ -90,6 +99,10 @@ func (l Literal) Equals(other Term) bool {
 	}
 	otherLit := other.(Literal)
 	return l.LexicalForm == otherLit.LexicalForm && l.DatatypeIRI.Equals(otherLit.DatatypeIRI) && l.LanguageTag == otherLit.LanguageTag
+}
+
+func (l Literal) RawValue() string {
+	return l.LexicalForm
 }
 
 func lexicalForm(s string) string {
