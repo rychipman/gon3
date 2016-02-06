@@ -13,10 +13,10 @@ type Parser struct {
 	// parser state
 	lex           lexer
 	nextTok       chan easylex.Token
-	baseURI       IRI
-	namespaces    map[string]IRI
-	bNodeLabels   map[string]BlankNode
-	lastBlankNode BlankNode
+	baseURI       *IRI
+	namespaces    map[string]*IRI
+	bNodeLabels   map[string]*BlankNode
+	lastBlankNode *BlankNode
 	curSubject    Term
 	curPredicate  Term
 }
@@ -28,12 +28,10 @@ func NewParser(input string) *Parser {
 		Graph:         Graph{}, // TODO: initialize
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
-		baseURI:       IRI{base},
-		namespaces:    map[string]IRI{},
-		bNodeLabels:   map[string]BlankNode{},
-		lastBlankNode: BlankNode{-1, ""},
-		curSubject:    IRI{},
-		curPredicate:  IRI{},
+		baseURI:       &IRI{base},
+		namespaces:    map[string]*IRI{}, // TODO: probably don't need these map inits
+		bNodeLabels:   map[string]*BlankNode{},
+		lastBlankNode: &BlankNode{-1, ""}, // TODO: make this initially nil
 	}
 	return p
 }
@@ -91,7 +89,7 @@ func (p *Parser) emitTriple(subj, pred, obj Term) {
 	p.Graph.triples = append(p.Graph.triples, trip)
 }
 
-func (p *Parser) blankNode(label string) BlankNode {
+func (p *Parser) blankNode(label string) *BlankNode {
 	if label == "" {
 		return p.newBlankNode()
 	} else if node, present := p.bNodeLabels[label]; present {
@@ -102,10 +100,10 @@ func (p *Parser) blankNode(label string) BlankNode {
 	return newNode
 }
 
-func (p *Parser) newBlankNode() BlankNode {
+func (p *Parser) newBlankNode() *BlankNode {
 	id := p.lastBlankNode.Id + 1
 	label := fmt.Sprintf("a%d", id)
-	b := BlankNode{
+	b := &BlankNode{
 		Id:    id,
 		Label: label,
 	}
@@ -113,28 +111,28 @@ func (p *Parser) newBlankNode() BlankNode {
 	return b
 }
 
-func (p *Parser) resolvePName(pname string) (IRI, error) {
+func (p *Parser) resolvePName(pname string) (*IRI, error) {
 	strs := strings.Split(pname, ":")
 	prefix := strs[0]
 	name := strs[1]
 	if iri, present := p.namespaces[prefix]; present {
 		rel, err := iriRefToURL(name)
 		if err != nil {
-			return IRI{}, err
+			return nil, err
 		}
 		resolved := iri.url.ResolveReference(rel) // TODO: make sure this properly resolves weird things
-		return IRI{resolved}, nil
+		return &IRI{resolved}, nil
 	}
-	return IRI{}, fmt.Errorf("Prefix %q not found in declared namespaces", prefix)
+	return nil, fmt.Errorf("Prefix %q not found in declared namespaces", prefix)
 }
 
-func (p *Parser) resolveIRI(iri string) (IRI, error) {
+func (p *Parser) resolveIRI(iri string) (*IRI, error) {
 	rel, err := iriRefToURL(iri)
 	if err != nil {
-		return IRI{}, err
+		return nil, err
 	}
 	url := p.baseURI.url.ResolveReference(rel)
-	return IRI{url}, nil
+	return &IRI{url}, nil
 }
 
 func (p *Parser) parseStatement() (bool, error) {
@@ -390,12 +388,12 @@ func (p *Parser) parseObjectList() error {
 	return nil
 }
 
-func (p *Parser) parseCollection() (BlankNode, error) {
+func (p *Parser) parseCollection() (*BlankNode, error) {
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
 	_, err := p.expect(tokenStartCollection)
 	if err != nil {
-		return BlankNode{}, err
+		return nil, err
 	}
 	bNode := p.blankNode("")
 	p.curSubject = bNode
@@ -404,14 +402,14 @@ func (p *Parser) parseCollection() (BlankNode, error) {
 	for next.Typ != tokenEndCollection {
 		err := p.parseObject()
 		if err != nil {
-			return BlankNode{}, err
+			return nil, err
 		}
 		next = p.peek()
 	}
 
 	_, err = p.expect(tokenEndCollection)
 	if err != nil {
-		return BlankNode{}, err
+		return nil, err
 	}
 	// TODO: use consts
 	rdfRest, _ := newIRIFromString("<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>")
@@ -465,31 +463,31 @@ func (p *Parser) parseObject() error {
 	}
 }
 
-func (p *Parser) parseBlankNodePropertyList() (BlankNode, error) {
+func (p *Parser) parseBlankNodePropertyList() (*BlankNode, error) {
 	savedSubject := p.curSubject
 	savedPredicate := p.curPredicate
 	// expect '[' token
 	_, err := p.expect(tokenStartBlankNodePropertyList)
 	if err != nil {
-		return BlankNode{}, err
+		return nil, err
 	}
 	bNode := p.blankNode("bnodeproplist")
 	p.curSubject = bNode
 	err = p.parsePredicateObjectList()
 	if err != nil {
-		return BlankNode{}, err
+		return nil, err
 	}
 	// expect ']' token
 	_, err = p.expect(tokenEndBlankNodePropertyList)
 	if err != nil {
-		return BlankNode{}, err
+		return nil, err
 	}
 	p.curSubject = savedSubject
 	p.curPredicate = savedPredicate
 	return bNode, nil
 }
 
-func (p *Parser) parseLiteral() (Literal, error) {
+func (p *Parser) parseLiteral() (*Literal, error) {
 	tok := p.peek()
 	switch tok.Typ {
 	case tokenInteger, tokenDecimal, tokenDouble:
@@ -502,12 +500,12 @@ func (p *Parser) parseLiteral() (Literal, error) {
 		lit, err := p.parseBooleanLiteral()
 		return lit, err
 	default:
-		return Literal{}, fmt.Errorf("Expected a literal token, got %v", tok)
+		return nil, fmt.Errorf("Expected a literal token, got %v", tok)
 	}
 	panic("unreachable")
 }
 
-func (p *Parser) parseNumericLiteral() (Literal, error) {
+func (p *Parser) parseNumericLiteral() (*Literal, error) {
 	// TODO: replace these with consts
 	xsdInteger, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#integer>")
 	xsdDecimal, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#decimal>")
@@ -515,35 +513,35 @@ func (p *Parser) parseNumericLiteral() (Literal, error) {
 	tok := p.next()
 	switch tok.Typ {
 	case tokenInteger:
-		lit := Literal{
+		lit := &Literal{
 			tok.Val,
 			xsdInteger,
 			"",
 		}
 		return lit, nil
 	case tokenDecimal:
-		lit := Literal{
+		lit := &Literal{
 			tok.Val,
 			xsdDecimal,
 			"",
 		}
 		return lit, nil
 	case tokenDouble:
-		lit := Literal{
+		lit := &Literal{
 			tok.Val,
 			xsdDouble,
 			"",
 		}
 		return lit, nil
 	default:
-		return Literal{}, fmt.Errorf("Expected a numeric literal token, got %s", tok)
+		return nil, fmt.Errorf("Expected a numeric literal token, got %s", tok)
 	}
 }
 
-func (p *Parser) parseRDFLiteral() (Literal, error) {
+func (p *Parser) parseRDFLiteral() (*Literal, error) {
 	tok := p.next()
 	stringDT, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#string>") // TODO: const
-	lit := Literal{
+	lit := &Literal{
 		LexicalForm: "",
 		DatatypeIRI: stringDT,
 		LanguageTag: "",
@@ -552,7 +550,7 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 	case tokenStringLiteralQuote, tokenStringLiteralSingleQuote, tokenStringLiteralLongQuote, tokenStringLiteralLongSingleQuote:
 		lit.LexicalForm = lexicalForm(tok.Val)
 	default:
-		return Literal{}, fmt.Errorf("Expected a string literal token, got %s", tok)
+		return nil, fmt.Errorf("Expected a string literal token, got %s", tok)
 	}
 	if p.peek().Typ == tokenLangTag {
 		langtag := p.next()
@@ -567,42 +565,42 @@ func (p *Parser) parseRDFLiteral() (Literal, error) {
 		case tokenIRIRef:
 			iri, err := p.resolveIRI(tok.Val)
 			if err != nil {
-				return Literal{}, err
+				return nil, err
 			}
 			lit.DatatypeIRI = iri
 		case tokenPNameLN, tokenPNameNS:
 			iri, err := p.resolvePName(tok.Val)
 			if err != nil {
-				return Literal{}, err
+				return nil, err
 			}
 			lit.DatatypeIRI = iri
 		default:
-			return Literal{}, fmt.Errorf("Expected an IRI or PName, got %s (type %s)", tok.Val, tok.Typ)
+			return nil, fmt.Errorf("Expected an IRI or PName, got %s (type %s)", tok.Val, tok.Typ)
 		}
 	}
 	return lit, nil
 }
 
-func (p *Parser) parseBooleanLiteral() (Literal, error) {
+func (p *Parser) parseBooleanLiteral() (*Literal, error) {
 	// TODO: make this a const
 	xsdBoolean, _ := newIRIFromString("<http://www.w3.org/2001/XMLSchema#boolean>")
 	tok := p.next()
 	switch tok.Typ {
 	case tokenTrue:
-		lit := Literal{
+		lit := &Literal{
 			tok.Val,
 			xsdBoolean,
 			"",
 		}
 		return lit, nil
 	case tokenFalse:
-		lit := Literal{
+		lit := &Literal{
 			tok.Val,
 			xsdBoolean,
 			"",
 		}
 		return lit, nil
 	default:
-		return Literal{}, fmt.Errorf("Expected a boolean literal token, got %s", tok)
+		return nil, fmt.Errorf("Expected a boolean literal token, got %s", tok)
 	}
 }

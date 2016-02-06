@@ -8,7 +8,7 @@ import (
 
 // algorithm: http://www.hpl.hp.com/techreports/2001/HPL-2001-293.pdf
 // also: http://blog.datagraph.org/2010/03/rdf-isomorphism
-func Isomorphic(g1, g2 Graph) bool {
+func build_bijection_to(g1, g2 *Graph) bool {
 	grounded1, ungrounded1 := hashNodes(g1, bNodesIn(g1), map[Term]string{})
 	grounded2, ungrounded2 := hashNodes(g2, bNodesIn(g2), map[Term]string{})
 
@@ -30,7 +30,7 @@ func Isomorphic(g1, g2 Graph) bool {
 	bijection := map[Term]Term{}
 	for node := range g1.IterNodes() {
 		for other, hash := range ungrounded2 {
-			nodeHash := ungrounded1[node.(BlankNode)]
+			nodeHash := ungrounded1[node.(*BlankNode)]
 			if nodeHash == hash {
 				bijection[node] = other
 				delete(ungrounded2, other)
@@ -44,12 +44,12 @@ func Isomorphic(g1, g2 Graph) bool {
 	panic("unimplemented")
 }
 
-func hashNodes(g Graph, nodes []BlankNode, hashes map[Term]string) (grounded map[Term]string, ungrounded map[BlankNode]string) {
+func hashNodes(g *Graph, nodes []*BlankNode, hashes map[Term]string) (grounded map[Term]string, ungrounded map[*BlankNode]string) {
 	grounded = map[Term]string{}
 	for k, v := range hashes {
 		grounded[k] = v
 	}
-	ungrounded = map[BlankNode]string{}
+	ungrounded = map[*BlankNode]string{}
 	for {
 		isUniqueHash := map[string]bool{}
 		numGrounded := len(grounded)
@@ -82,7 +82,7 @@ func hashNodes(g Graph, nodes []BlankNode, hashes map[Term]string) (grounded map
 	return
 }
 
-func nodeHash(node BlankNode, g Graph, hashes map[Term]string) (bool, string) {
+func nodeHash(node *BlankNode, g *Graph, hashes map[Term]string) (bool, string) {
 	tripleSignatures := []string{}
 	grounded := true
 	for trip := range g.IterTriples() {
@@ -102,7 +102,7 @@ func nodeHash(node BlankNode, g Graph, hashes map[Term]string) (bool, string) {
 	return grounded, string(hash[:])
 }
 
-func hashString(trip *Triple, hashes map[Term]string, node BlankNode) string {
+func hashString(trip *Triple, hashes map[Term]string, node *BlankNode) string {
 	str := ""
 	for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
 		hash, grounded := hashes[term]
@@ -120,12 +120,12 @@ func hashString(trip *Triple, hashes map[Term]string, node BlankNode) string {
 	return str
 }
 
-func bNodesIn(g Graph) []BlankNode {
-	bNodes := []BlankNode{}
+func bNodesIn(g *Graph) []*BlankNode {
+	bNodes := []*BlankNode{}
 	for trip := range g.IterTriples() {
 		for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
 			if isBlankNode(term) {
-				bNodes = append(bNodes, term.(BlankNode))
+				bNodes = append(bNodes, term.(*BlankNode))
 			}
 		}
 	}

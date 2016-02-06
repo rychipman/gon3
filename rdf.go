@@ -18,13 +18,13 @@ type IRI struct {
 	url *url.URL
 }
 
-func (i IRI) String() string {
+func (i *IRI) String() string {
 	return fmt.Sprintf("<%s>", i.url)
 }
 
-func (i IRI) Equals(other Term) bool {
+func (i *IRI) Equals(other Term) bool {
 	switch other.(type) {
-	case IRI:
+	case *IRI:
 		break
 	default:
 		return false
@@ -32,13 +32,13 @@ func (i IRI) Equals(other Term) bool {
 	return i.String() == other.String()
 }
 
-func (i IRI) RawValue() string {
+func (i *IRI) RawValue() string {
 	return fmt.Sprintf("%s", i.url)
 }
 
-func newIRIFromString(s string) (IRI, error) {
+func newIRIFromString(s string) (*IRI, error) {
 	url, err := iriRefToURL(s)
-	return IRI{url}, err
+	return &IRI{url}, err
 }
 
 func iriRefToURL(s string) (*url.URL, error) {
@@ -56,21 +56,21 @@ type BlankNode struct {
 	Label string
 }
 
-func (b BlankNode) String() string {
+func (b *BlankNode) String() string {
 	return fmt.Sprintf("_:%s", b.Label)
 }
 
-func (b BlankNode) Equals(other Term) bool {
+func (b *BlankNode) Equals(other Term) bool {
 	panic("unimplemented")
 }
 
-func (b BlankNode) RawValue() string {
+func (b *BlankNode) RawValue() string {
 	return b.Label
 }
 
 func isBlankNode(t Term) bool {
 	switch t.(type) {
-	case BlankNode:
+	case *BlankNode:
 		return true
 	}
 	return false
@@ -79,29 +79,29 @@ func isBlankNode(t Term) bool {
 // see http://www.w3.org/TR/rdf11-concepts/#dfn-literal
 type Literal struct {
 	LexicalForm string
-	DatatypeIRI IRI
+	DatatypeIRI *IRI
 	LanguageTag string
 }
 
-func (l Literal) String() string {
+func (l *Literal) String() string {
 	if l.LanguageTag != "" {
 		return fmt.Sprintf("%q@%s", l.LexicalForm, l.LanguageTag)
 	}
 	return fmt.Sprintf("%q^^%s", l.LexicalForm, l.DatatypeIRI)
 }
 
-func (l Literal) Equals(other Term) bool {
+func (l *Literal) Equals(other Term) bool {
 	switch other.(type) {
-	case Literal:
+	case *Literal:
 		break
 	default:
 		return false
 	}
-	otherLit := other.(Literal)
+	otherLit := other.(*Literal)
 	return l.LexicalForm == otherLit.LexicalForm && l.DatatypeIRI.Equals(otherLit.DatatypeIRI) && l.LanguageTag == otherLit.LanguageTag
 }
 
-func (l Literal) RawValue() string {
+func (l *Literal) RawValue() string {
 	return l.LexicalForm
 }
 
@@ -202,10 +202,10 @@ func (t *Triple) IterNodes() <-chan Term {
 // An RDF graph is a set of RDF triples
 type Graph struct {
 	triples []*Triple
-	uri     IRI
+	uri     *IRI
 }
 
-func (g Graph) String() string {
+func (g *Graph) String() string {
 	str := ""
 	i := -1
 	for t := range g.IterTriples() {
@@ -218,7 +218,7 @@ func (g Graph) String() string {
 	return str
 }
 
-func (g Graph) IterNodes() <-chan Term {
+func (g *Graph) IterNodes() <-chan Term {
 	ch := make(chan Term)
 	go func() {
 		for trip := range g.IterTriples() {
@@ -231,7 +231,7 @@ func (g Graph) IterNodes() <-chan Term {
 	return ch
 }
 
-func (g Graph) IterTriples() <-chan *Triple {
+func (g *Graph) IterTriples() <-chan *Triple {
 	ch := make(chan *Triple)
 	go func() {
 		for _, trip := range g.triples {
