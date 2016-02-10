@@ -237,10 +237,9 @@ var positiveParserTests []string = []string{
 	//"nested_blankNodePropertyLists",
 	"nested_collection",
 	"numeric_with_leading_0",
-	// TODO: some duplicates not being removed
-	//"objectList_with_two_objects",
-	//"predicateObjectList_with_two_objectLists",
-	//"turtle-eval-struct-02",
+	"objectList_with_two_objects",
+	"predicateObjectList_with_two_objectLists",
+	"turtle-eval-struct-02",
 	"percent_escaped_localName",
 	"positive_numeric",
 	"prefix_reassigned_and_used",

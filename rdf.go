@@ -243,16 +243,16 @@ func (g *Graph) IterTriples() <-chan *Triple {
 }
 
 func (g *Graph) NodesSorted() []Term {
-	set := make(map[Term]bool)
+	set := make(map[string]Term)
 	for t := range g.IterTriples() {
 		for n := range t.IterNodes() {
-			if _, has := set[n]; !has {
-				set[n] = true
+			if _, has := set[n.String()]; !has {
+				set[n.String()] = n
 			}
 		}
 	}
 	terms := make([]Term, 0)
-	for t, _ := range set {
+	for _, t := range set {
 		terms = append(terms, t)
 	}
 	termsSlice := TermSlice(terms)
