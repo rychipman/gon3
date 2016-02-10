@@ -3,6 +3,7 @@ package gon3
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -61,7 +62,13 @@ func (b *BlankNode) String() string {
 }
 
 func (b *BlankNode) Equals(other Term) bool {
-	panic("unimplemented")
+	switch other.(type) {
+	case *BlankNode:
+		return true
+	default:
+		return false
+	}
+	panic("unreachable")
 }
 
 func (b *BlankNode) RawValue() string {
@@ -218,19 +225,6 @@ func (g *Graph) String() string {
 	return str
 }
 
-func (g *Graph) IterNodes() <-chan Term {
-	ch := make(chan Term)
-	go func() {
-		for trip := range g.IterTriples() {
-			for term := range trip.IterNodes() {
-				ch <- term
-			}
-		}
-		close(ch)
-	}()
-	return ch
-}
-
 func (g *Graph) IterTriples() <-chan *Triple {
 	ch := make(chan *Triple)
 	go func() {
@@ -240,4 +234,64 @@ func (g *Graph) IterTriples() <-chan *Triple {
 		close(ch)
 	}()
 	return ch
+}
+
+func (g *Graph) NodesSorted() []Term {
+	set := make(map[Term]bool)
+	for t := range g.IterTriples() {
+		for n := range t.IterNodes() {
+			if _, has := set[n]; !has {
+				set[n] = true
+			}
+		}
+	}
+	terms := make([]Term, len(set))
+	for t, _ := range set {
+		terms = append(terms, t)
+	}
+	termsSlice := TermSlice(terms)
+	sort.Sort(termsSlice)
+	return termsSlice
+}
+
+type TermSlice []Term
+
+func (ts TermSlice) Len() int {
+	return len(ts)
+}
+
+func (ts TermSlice) Less(i, j int) bool {
+	iNode := ts[i]
+	jNode := ts[j]
+	iPriority := 0
+	jPriority := 0
+	switch iNode.(type) {
+	case *BlankNode:
+		iPriority = 1
+	case *Literal:
+		iPriority = 2
+	case *IRI:
+		iPriority = 3
+	}
+	switch jNode.(type) {
+	case *BlankNode:
+		jPriority = 1
+	case *Literal:
+		jPriority = 2
+	case *IRI:
+		jPriority = 3
+	}
+	if iPriority > jPriority {
+		return true
+	} else if jPriority < iPriority {
+		return false
+	}
+	return iNode.String() < jNode.String()
+}
+
+func (ts TermSlice) Swap(i, j int) {
+	iNode := ts[i]
+	jNode := ts[j]
+	ts[i] = jNode
+	ts[j] = iNode
 }

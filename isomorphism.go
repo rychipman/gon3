@@ -8,126 +8,225 @@ import (
 
 // algorithm: http://www.hpl.hp.com/techreports/2001/HPL-2001-293.pdf
 // also: http://blog.datagraph.org/2010/03/rdf-isomorphism
-func build_bijection_to(g1, g2 *Graph) bool {
-	grounded1, ungrounded1 := hashNodes(g1, bNodesIn(g1), map[Term]string{})
-	grounded2, ungrounded2 := hashNodes(g2, bNodesIn(g2), map[Term]string{})
 
-	// check that grounded hashes are the same up to this point
-	for term, _ := range grounded1 {
-		_, present := grounded2[term]
-		if !present {
+type CanonicalGraph struct {
+	graph      *Graph
+	nodes      []Term
+	bNodes     []*BlankNode
+	ungrounded map[*BlankNode]string
+	grounded   map[Term]string
+}
+
+func (g *Graph) Canonicalize() *CanonicalGraph {
+	cg := &CanonicalGraph{
+		graph:      g,
+		nodes:      g.NodesSorted(),
+		ungrounded: make(map[*BlankNode]string),
+		grounded:   make(map[Term]string),
+	}
+	for _, n := range cg.nodes {
+		if isBlankNode(n) {
+			cg.bNodes = append(cg.bNodes, n.(*BlankNode))
+		}
+	}
+	return cg
+}
+
+func (cg1 *CanonicalGraph) IsomorphicTo(cg2 *CanonicalGraph) bool {
+	// both graphs need same number of nodes
+	if len(cg1.nodes) != len(cg2.nodes) {
+		return false
+	}
+	// make sure non-blank nodes match
+	for i, n1 := range cg1.nodes {
+		if !n1.Equals(cg2.nodes[i]) {
 			return false
 		}
 	}
-	for term, _ := range grounded2 {
-		_, present := grounded1[term]
-		if !present {
+	// try to build a bijection between the graphs
+	return cg1.BijectTo(cg2)
+}
+
+func (cg1 *CanonicalGraph) BijectTo(cg2 *CanonicalGraph) bool {
+	// ground as many nodes as possible
+	cg1.groundNodes()
+	cg2.groundNodes()
+	// ensure grounded nodes built at same rate
+	if !cg1.verifyGrounded(cg2) {
+		return false
+	}
+	// map bnodes in cg1 to bnodes in cg2
+	cg2UngroundedTmp := make(map[*BlankNode]string)
+	for k, v := range cg2.ungrounded {
+		cg2UngroundedTmp[k] = v
+	}
+	bijection := make(map[*BlankNode]*BlankNode)
+	for bn1, h1 := range cg1.ungrounded {
+		for bn2, h2 := range cg2UngroundedTmp {
+			if h2 == h1 {
+				bijection[bn1] = bn2
+				delete(cg2UngroundedTmp, bn2)
+			}
+		}
+	}
+	// if all nodes accounted for in mapping, success
+	if cg1.validBijectionTo(bijection, cg2) {
+		return true
+	}
+
+	// mark two ungrounded nodes with matching sigs as grounded and recurse
+	for _, bn1 := range cg1.bNodes {
+		if _, has := cg1.grounded[bn1]; has {
+			continue
+		}
+		for _, bn2 := range cg2.bNodes {
+			if _, has := cg2.grounded[bn2]; has {
+				continue
+			}
+			if cg1.ungrounded[bn1] != cg2.ungrounded[bn2] {
+				continue
+			}
+			// try setting this pair as grounded
+			hash := sha1.Sum([]byte(bn1.String()))
+			cg1.grounded[bn1] = string(hash[:])
+			cg2.grounded[bn2] = string(hash[:])
+			if cg1.BijectTo(cg2) {
+				return true
+			}
+			// backtrack
+			delete(cg1.grounded, bn1)
+			delete(cg2.grounded, bn2)
+		}
+	}
+	// if we have exhausted all signature matches, fail
+	return false
+}
+
+func (cg1 *CanonicalGraph) validBijectionTo(bij map[*BlankNode]*BlankNode, cg2 *CanonicalGraph) bool {
+	nods1 := make([]Term, len(cg1.bNodes))
+	nods2 := make([]Term, len(cg1.bNodes))
+	cNods1 := make([]Term, len(cg1.bNodes))
+	cNods2 := make([]Term, len(cg1.bNodes))
+	for n1, n2 := range bij {
+		nods1 = append(nods1, n1)
+		nods2 = append(nods2, n2)
+	}
+	for _, n := range cg1.bNodes {
+		cNods1 = append(cNods1, n)
+	}
+	for _, n := range cg2.bNodes {
+		cNods2 = append(cNods2, n)
+	}
+	nodes1 := TermSlice(nods1)
+	nodes2 := TermSlice(nods2)
+	sort.Sort(nodes1)
+	sort.Sort(nodes2)
+	cNodes1 := TermSlice(cNods1)
+	cNodes2 := TermSlice(cNods2)
+	sort.Sort(cNodes1)
+	sort.Sort(cNodes2)
+	if len(nodes1) != len(cNodes1) || len(nodes2) != len(cNodes2) {
+		return false
+	}
+	for i := 0; i < len(nodes1); i++ {
+		if nodes1[i] != cNodes1[i] {
+			return false
+		}
+		if nodes2[i] != cNodes2[i] {
 			return false
 		}
 	}
+	return true
+}
 
-	// map nodes in g1 to nodes in g2
-	bijection := map[Term]Term{}
-	for node := range g1.IterNodes() {
-		for other, hash := range ungrounded2 {
-			nodeHash := ungrounded1[node.(*BlankNode)]
-			if nodeHash == hash {
-				bijection[node] = other
-				delete(ungrounded2, other)
+func (cg1 *CanonicalGraph) verifyGrounded(cg2 *CanonicalGraph) bool {
+	for _, h1 := range cg1.grounded {
+		found := false
+		for _, h2 := range cg2.grounded {
+			if h1 == h2 {
+				found = true
 				break
 			}
 		}
+		if !found {
+			return false
+		}
 	}
-
-	// if all nodes accounted for on both sides, we have a bijection
-
-	panic("unimplemented")
+	for _, h2 := range cg2.grounded {
+		found := false
+		for _, h1 := range cg1.grounded {
+			if h1 == h2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 
-func hashNodes(g *Graph, nodes []*BlankNode, hashes map[Term]string) (grounded map[Term]string, ungrounded map[*BlankNode]string) {
-	grounded = map[Term]string{}
-	for k, v := range hashes {
-		grounded[k] = v
-	}
-	ungrounded = map[*BlankNode]string{}
+func (cg *CanonicalGraph) groundNodes() {
 	for {
-		isUniqueHash := map[string]bool{}
-		numGrounded := len(grounded)
-		// mark as many nodes as possible as grounded
-		for _, node := range nodes {
-			if _, present := grounded[node]; !present {
-				isGrounded, hash := nodeHash(node, g, grounded)
-				if isGrounded {
-					grounded[node] = hash
-				}
-				ungrounded[node] = hash
-				if _, present := isUniqueHash[hash]; !present {
-					isUniqueHash[hash] = true
-				} else {
-					isUniqueHash[hash] = false
-				}
+		// note current num of grounded nodes
+		startLen := len(cg.grounded)
+		// mark nodes as grounded by their membership in triples
+		for _, n := range cg.bNodes {
+			if _, has := cg.grounded[n]; !has {
+				cg.hashNode(n)
 			}
 		}
-		// mark any node with a unique hash as grounded
-		for node, hash := range ungrounded {
-			if isUniqueHash[hash] {
-				grounded[node] = hash
-			}
-		}
-		// break if we haven't added any grounded nodes
-		if len(grounded) == numGrounded {
+		// TODO: do we need to ground nodes with unique signatures?
+		// break if no new nodes have been grounded
+		if len(cg.grounded) == startLen {
 			break
 		}
 	}
-	return
 }
 
-func nodeHash(node *BlankNode, g *Graph, hashes map[Term]string) (bool, string) {
-	tripleSignatures := []string{}
+func (cg *CanonicalGraph) hashNode(bn *BlankNode) {
+	tripleSignatures := make([]string, 1)
 	grounded := true
-	for trip := range g.IterTriples() {
-		if trip.includes(node) {
-			tripleSignatures = append(tripleSignatures, hashString(trip, hashes, node))
-			for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
-				_, present := hashes[term]
-				if !term.Equals(node) && !present {
-					grounded = false
+	for trip := range cg.graph.IterTriples() {
+		if trip.includes(bn) {
+			tripleSignatures = append(tripleSignatures, cg.getHashString(trip, bn))
+			// if there are any other ungrounded blank nodes in this triple,
+			// mark this blank node as ungrounded
+			for term := range trip.IterNodes() {
+				if isBlankNode(term) {
+					bnod := term.(*BlankNode)
+					_, present := cg.grounded[bnod]
+					if !term.Equals(bn) && !present {
+						grounded = false
+					}
 				}
 			}
 		}
 	}
-	trips := sort.StringSlice(tripleSignatures)
-	trips.Sort()
-	hash := sha1.Sum([]byte(fmt.Sprintf("%v", trips)))
-	return grounded, string(hash[:])
+	sort.Strings(tripleSignatures)
+	hash := sha1.Sum([]byte(fmt.Sprintf("%v", tripleSignatures)))
+	if grounded {
+		cg.grounded[bn] = string(hash[:])
+	} else {
+		cg.ungrounded[bn] = string(hash[:])
+	}
 }
 
-func hashString(trip *Triple, hashes map[Term]string, node *BlankNode) string {
+func (cg *CanonicalGraph) getHashString(t *Triple, n *BlankNode) string {
 	str := ""
-	for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
-		hash, grounded := hashes[term]
+	for term := range t.IterNodes() {
+		hash, grounded := cg.grounded[term]
 		switch {
-		case node.Equals(term):
+		case n == term:
 			str += "itself"
 		case grounded:
 			str += hash
-		case isBlankNode(node):
+		case isBlankNode(n):
 			str += "a blank node"
 		default:
-			str += node.String()
+			str += n.String()
 		}
 	}
 	return str
-}
-
-func bNodesIn(g *Graph) []*BlankNode {
-	bNodes := []*BlankNode{}
-	for trip := range g.IterTriples() {
-		for _, term := range []Term{trip.Subject, trip.Predicate, trip.Object} {
-			if isBlankNode(term) {
-				bNodes = append(bNodes, term.(*BlankNode))
-			}
-		}
-	}
-	return bNodes
 }
