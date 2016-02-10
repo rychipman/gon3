@@ -257,6 +257,7 @@ func (g *Graph) NodesSorted() []Term {
 	}
 	termsSlice := TermSlice(terms)
 	sort.Sort(termsSlice)
+	fmt.Printf("nodes before sort: %+v\nafter:             %+v\n", terms, termsSlice)
 	return termsSlice
 }
 
@@ -289,10 +290,10 @@ func (ts TermSlice) Less(i, j int) bool {
 	}
 	if iPriority > jPriority {
 		return true
-	} else if jPriority < iPriority {
+	} else if jPriority > iPriority {
 		return false
 	}
-	return iNode.String() < jNode.String()
+	return strings.Compare(iNode.String(), jNode.String()) > 0
 }
 
 func (ts TermSlice) Swap(i, j int) {
