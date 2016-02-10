@@ -103,10 +103,10 @@ func (cg1 *CanonicalGraph) BijectTo(cg2 *CanonicalGraph) bool {
 }
 
 func (cg1 *CanonicalGraph) validBijectionTo(bij map[*BlankNode]*BlankNode, cg2 *CanonicalGraph) bool {
-	nods1 := make([]Term, len(cg1.bNodes))
-	nods2 := make([]Term, len(cg1.bNodes))
-	cNods1 := make([]Term, len(cg1.bNodes))
-	cNods2 := make([]Term, len(cg1.bNodes))
+	nods1 := make([]Term, 0)
+	nods2 := make([]Term, 0)
+	cNods1 := make([]Term, 0)
+	cNods2 := make([]Term, 0)
 	for n1, n2 := range bij {
 		nods1 = append(nods1, n1)
 		nods2 = append(nods2, n2)
@@ -186,7 +186,7 @@ func (cg *CanonicalGraph) groundNodes() {
 }
 
 func (cg *CanonicalGraph) hashNode(bn *BlankNode) {
-	tripleSignatures := make([]string, 1)
+	tripleSignatures := make([]string, 0)
 	grounded := true
 	for trip := range cg.graph.IterTriples() {
 		if trip.includes(bn) {

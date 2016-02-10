@@ -8,7 +8,7 @@ import (
 
 func TestTurtlePositive(t *testing.T) {
 
-	verbosity := 2
+	verbosity := 0
 
 	for _, testName := range positiveParserTests {
 		testFile := "./tests/turtle/" + testName
@@ -34,7 +34,7 @@ func TestTurtlePositive(t *testing.T) {
 }
 
 func TestTurtleNegative(t *testing.T) {
-	verbosity := 1
+	verbosity := 0
 	for _, testName := range negativeParserTests {
 		testFile := "./tests/turtle/" + testName
 		b, err := ioutil.ReadFile(testFile)

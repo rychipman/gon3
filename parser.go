@@ -9,7 +9,7 @@ import (
 
 type Parser struct {
 	// target data structure
-	Graph Graph
+	Graph *Graph
 	// parser state
 	lex           lexer
 	nextTok       chan easylex.Token
@@ -25,7 +25,7 @@ func NewParser(input string) *Parser {
 	base, _ := url.Parse("") // TODO: properly initialize baseuri
 	// initialize parser
 	p := &Parser{
-		Graph:         Graph{}, // TODO: initialize
+		Graph:         &Graph{}, // TODO: initialize
 		lex:           easylex.Lex(input, lexDocument),
 		nextTok:       make(chan easylex.Token, 1),
 		baseURI:       &IRI{base},
@@ -36,7 +36,7 @@ func NewParser(input string) *Parser {
 	return p
 }
 
-func (p *Parser) Parse() (Graph, error) {
+func (p *Parser) Parse() (*Graph, error) {
 	var err error
 	var done bool
 	for { // while the next token is not an EOF
@@ -64,7 +64,6 @@ func (p *Parser) next() easylex.Token {
 	for {
 		select {
 		case t := <-p.nextTok:
-			fmt.Printf("TOKEN: %s (type %s)\n", t, t.Typ)
 			return t
 		default:
 			p.nextTok <- p.lex.NextToken()

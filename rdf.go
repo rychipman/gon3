@@ -212,6 +212,12 @@ type Graph struct {
 	uri     *IRI
 }
 
+func (g *Graph) IsomorphicTo(other *Graph) bool {
+	cg1 := g.Canonicalize()
+	cg2 := other.Canonicalize()
+	return cg1.IsomorphicTo(cg2)
+}
+
 func (g *Graph) String() string {
 	str := ""
 	i := -1
@@ -245,7 +251,7 @@ func (g *Graph) NodesSorted() []Term {
 			}
 		}
 	}
-	terms := make([]Term, len(set))
+	terms := make([]Term, 0)
 	for t, _ := range set {
 		terms = append(terms, t)
 	}
